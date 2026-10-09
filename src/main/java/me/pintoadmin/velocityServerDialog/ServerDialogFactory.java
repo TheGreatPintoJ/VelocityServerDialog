@@ -21,6 +21,7 @@ public final class ServerDialogFactory {
     private static final ResourceLocation SELECT = new ResourceLocation(SelectionManager.NAMESPACE, "select");
     private static final ResourceLocation PASSWD = new ResourceLocation(SelectionManager.NAMESPACE, "passwd");
     private static final ResourceLocation LOCKED = new ResourceLocation(SelectionManager.NAMESPACE, "locked");
+    private static final ResourceLocation MAINTENANCE = new ResourceLocation(SelectionManager.NAMESPACE, "maintenance");
     private static final ResourceLocation QUIT   = new ResourceLocation(SelectionManager.NAMESPACE, "quit");
     private static final ResourceLocation CLOSE   = new ResourceLocation(SelectionManager.NAMESPACE, "close");
 
@@ -37,6 +38,8 @@ public final class ServerDialogFactory {
             String serverPasswd = entry.pwString();
             String serverPerm = entry.permString();
 
+            boolean serverMaintenance = entry.maintenance();
+
             if(!serverPerm.isBlank() && !player.hasPermission(serverPerm))
                 serverLocked = true;
 
@@ -47,14 +50,18 @@ public final class ServerDialogFactory {
             }
 
             Component label;
-            if(!serverLocked) {
-                label = mm(entry.display()).append(up
-                        ? Component.text(" (" + server.getPlayersConnected().size() + " online)", NamedTextColor.GRAY)
-                        : Component.text(" (offline)", NamedTextColor.DARK_GRAY));
-            } else {
+            if (serverLocked) {
                 label = mm(entry.display()).color(TextColor.color(255, 50, 50))
                         .append(Component.text(" (locked)", NamedTextColor.DARK_RED))
                         .decorate(TextDecoration.BOLD);
+            } else if(serverMaintenance) {
+                label = mm(entry.display()).color(TextColor.color(175, 0, 255))
+                        .append(Component.text(" (maintenance)", NamedTextColor.DARK_PURPLE))
+                        .decorate(TextDecoration.BOLD);
+            } else {
+                label = mm(entry.display()).append(up
+                        ? Component.text(" (" + server.getPlayersConnected().size() + " online)", NamedTextColor.GRAY)
+                        : Component.text(" (offline)", NamedTextColor.DARK_GRAY));
             }
 
             Component tooltip = entry.description().isEmpty() ? null : mm(entry.description());
@@ -66,8 +73,9 @@ public final class ServerDialogFactory {
             DynamicCustomAction action = new DynamicCustomAction(SELECT, payload);
             DynamicCustomAction passwd = new DynamicCustomAction(PASSWD, payload);
             DynamicCustomAction locked = new DynamicCustomAction(LOCKED, payload);
+            DynamicCustomAction maintenance = new DynamicCustomAction(MAINTENANCE, payload);
 
-            Action finalAction = serverLocked ? locked : !serverPasswd.isBlank() ? passwd : action;
+            Action finalAction = serverMaintenance ? maintenance : serverLocked ? locked : !serverPasswd.isBlank() ? passwd : action;
             ActionButton button = new ActionButton(data, finalAction);
             buttons.add(button);
         }

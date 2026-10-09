@@ -164,9 +164,9 @@ public final class SelectionManager {
         resend(pw);
     }
 
-    public void locked(UUID uuid, String serverName){
+    public void custom(UUID uuid, Dialog dialog){
         Optional<Player> player = proxy.getPlayer(uuid);
-        player.ifPresent(value -> showDialog(value, LockedDialogFactory.build(serverName)));
+        player.ifPresent(value -> showDialog(value, dialog));
     }
 
     public void back(UUID uuid){

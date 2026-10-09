@@ -13,18 +13,18 @@ import java.util.*;
 
 import static me.pintoadmin.velocityServerDialog.Text.*;
 
-public final class LockedDialogFactory {
+public final class NoticeDialogFactory {
     private static final ResourceLocation BACK   = new ResourceLocation(SelectionManager.NAMESPACE, "back");
 
-    private LockedDialogFactory() {}
+    private NoticeDialogFactory() {}
 
-    public static Dialog build(String name) {
+    public static Dialog build(String notice) {
         ActionButton back = new ActionButton(
                 new CommonButtonData(Component.text("Back", NamedTextColor.RED), null, 200),
                 new DynamicCustomAction(BACK, new NBTCompound()));
 
         CommonDialogData common = new CommonDialogData(
-                mm("<red>"+name+" is locked"), null,
+                mm(notice), null,
                 /* canCloseWithEscape */ false,
                 /* pause */ false,
                 DialogAction.CLOSE,

@@ -13,6 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.velocitypowered.api.proxy.*;
 
+import java.awt.*;
 import java.util.*;
 
 public final class ClickPacketListener implements PacketListener {
@@ -48,7 +49,13 @@ public final class ClickPacketListener implements PacketListener {
                 case "locked" -> {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");
-                        if (server != null) manager.locked(uuid, server);
+                        if (server != null) manager.custom(uuid, NoticeDialogFactory.build("<red>The "+server+" server is locked"));
+                    }
+                }
+                case "maintenance" -> {
+                    if (packet.getPayload() instanceof NBTCompound tag){
+                        String server = tag.getStringTagValueOrNull("server");
+                        if (server != null) manager.custom(uuid, NoticeDialogFactory.build("<dark_purple>The "+server+" server is under maintenance"));
                     }
                 }
                 case "passwd" -> {
