@@ -36,6 +36,11 @@ public final class SelectionManager {
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
     }
 
+    private void showDialog(Player player, Dialog dialog){
+        PacketEvents.getAPI().getPlayerManager()
+                .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerShowDialog(dialog) : new WrapperConfigServerShowDialog(dialog));
+    }
+
     private final Map<UUID, Pending> pending = new ConcurrentHashMap<>();
     private final Map<String, Pending> passwdPendings = new HashMap<>();
     private final Object plugin;
@@ -136,11 +141,15 @@ public final class SelectionManager {
         p.timeoutTask().cancel();
 
         Player player = p.event().getPlayer();
-        if(playersPostjoin.get(player)) player.createConnectionRequest(target.get()).connect();
+        clearDialog(player);
+        showDialog(player, WaitingDialogFactory.build(serverName));
+
+        if(playersPostjoin.get(player)) player.createConnectionRequest(target.get()).connect().thenAccept((result) -> {
+            clearDialog(player);
+        });
         else p.event().setInitialServer(target.get());
 
         playersPostjoin.put(p.event.getPlayer(), true);
-        clearDialog(player);
         if(p.continuation() != null) p.continuation().resume();
     }
 
@@ -169,11 +178,12 @@ public final class SelectionManager {
 
     public void quit(UUID uuid) {
         Pending p = pending.remove(uuid);
-        if (p == null) return;
-        clearDialog(p.event.getPlayer());
-        p.timeoutTask().cancel();
-        p.event().getPlayer().disconnect(mm(config.kickQuit()));
-        if(p.continuation() != null) p.continuation().resume();
+        Optional<Player> player = proxy.getPlayer(uuid);
+        if(player.isEmpty()) return;
+        clearDialog(player.get());
+        if(p != null) p.timeoutTask().cancel();
+        player.get().disconnect(mm(config.kickQuit()));
+        if(p != null && p.continuation() != null) p.continuation().resume();
     }
 
     public void close(UUID uuid){

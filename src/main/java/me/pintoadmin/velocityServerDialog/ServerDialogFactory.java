@@ -78,7 +78,7 @@ public final class ServerDialogFactory {
                 mm(cfg.title()), null,
                 /* canCloseWithEscape */ manager.playersPostjoin.get(player),
                 /* pause */ false,
-                DialogAction.NONE,
+                DialogAction.CLOSE,
                 List.of(new PlainMessageDialogBody(new PlainMessage(mm(cfg.body()), 300))),
                 List.of());
 
