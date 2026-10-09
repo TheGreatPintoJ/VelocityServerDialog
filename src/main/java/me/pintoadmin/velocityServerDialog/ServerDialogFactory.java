@@ -20,6 +20,7 @@ import static me.pintoadmin.velocityServerDialog.Text.*;
 public final class ServerDialogFactory {
     private static final ResourceLocation SELECT = new ResourceLocation(SelectionManager.NAMESPACE, "select");
     private static final ResourceLocation PASSWD = new ResourceLocation(SelectionManager.NAMESPACE, "passwd");
+    private static final ResourceLocation LOCKED = new ResourceLocation(SelectionManager.NAMESPACE, "locked");
     private static final ResourceLocation QUIT   = new ResourceLocation(SelectionManager.NAMESPACE, "quit");
     private static final ResourceLocation CLOSE   = new ResourceLocation(SelectionManager.NAMESPACE, "close");
 
@@ -64,8 +65,9 @@ public final class ServerDialogFactory {
             CommonButtonData data = new CommonButtonData(label, tooltip, 200);
             DynamicCustomAction action = new DynamicCustomAction(SELECT, payload);
             DynamicCustomAction passwd = new DynamicCustomAction(PASSWD, payload);
+            DynamicCustomAction locked = new DynamicCustomAction(LOCKED, payload);
 
-            Action finalAction = serverLocked ? null : !serverPasswd.isBlank() ? passwd : action;
+            Action finalAction = serverLocked ? locked : !serverPasswd.isBlank() ? passwd : action;
             ActionButton button = new ActionButton(data, finalAction);
             buttons.add(button);
         }

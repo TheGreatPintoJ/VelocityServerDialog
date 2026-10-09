@@ -164,7 +164,12 @@ public final class SelectionManager {
         resend(pw);
     }
 
-    public void passwd_back(UUID uuid){
+    public void locked(UUID uuid, String serverName){
+        Optional<Player> player = proxy.getPlayer(uuid);
+        player.ifPresent(value -> showDialog(value, LockedDialogFactory.build(serverName)));
+    }
+
+    public void back(UUID uuid){
         Pending p = pending.get(uuid);
         if (p == null) return;
         clearDialog(p.event.getPlayer());

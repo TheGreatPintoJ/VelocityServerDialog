@@ -1,18 +1,26 @@
 package me.pintoadmin.velocityServerDialog;
 
+import com.github.retrooper.packetevents.*;
 import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.protocol.nbt.*;
 import com.github.retrooper.packetevents.protocol.packettype.*;
+import com.github.retrooper.packetevents.protocol.player.*;
+import com.github.retrooper.packetevents.protocol.sound.*;
 import com.github.retrooper.packetevents.resources.*;
+import com.github.retrooper.packetevents.util.*;
 import com.github.retrooper.packetevents.wrapper.configuration.client.*;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
+import com.velocitypowered.api.proxy.*;
 
 import java.util.*;
 
 public final class ClickPacketListener implements PacketListener {
+    private final ProxyServer proxy;
     private final SelectionManager manager;
 
-    public ClickPacketListener(SelectionManager manager) {
+    public ClickPacketListener(ProxyServer proxy, SelectionManager manager) {
+        this.proxy = proxy;
         this.manager = manager;
     }
 
@@ -37,6 +45,12 @@ public final class ClickPacketListener implements PacketListener {
                         if (server != null) manager.select(uuid, server);
                     }
                 }
+                case "locked" -> {
+                    if (packet.getPayload() instanceof NBTCompound tag) {
+                        String server = tag.getStringTagValueOrNull("server");
+                        if (server != null) manager.locked(uuid, server);
+                    }
+                }
                 case "passwd" -> {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");
@@ -53,7 +67,7 @@ public final class ClickPacketListener implements PacketListener {
                         }
                     }
                 }
-                case "back_pw" -> manager.passwd_back(uuid);
+                case "back" -> manager.back(uuid);
                 case "close" -> manager.close(uuid);
                 case "quit" -> manager.quit(uuid);
                 default -> {
