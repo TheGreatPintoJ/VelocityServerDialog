@@ -37,6 +37,8 @@ public final class JoinListener {
             return null; // leave Velocity's default choice untouched
         }
 
+        manager.playersPostjoin.put(player, false);
+
         // Feature 1: suspend the event; Velocity won't connect until resume()
         return EventTask.withContinuation(continuation -> {
             List<RegisteredServer> servers = manager.listedServers();
@@ -50,7 +52,7 @@ public final class JoinListener {
                     .toArray(CompletableFuture[]::new);
 
             CompletableFuture.allOf(pings).whenComplete((v, err) ->
-                    manager.begin(event, continuation, online, false));
+                    manager.begin(event, continuation, online));
         });
     }
 
@@ -58,5 +60,6 @@ public final class JoinListener {
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         manager.abandon(event.getPlayer().getUniqueId());
+        manager.playersPostjoin.remove(event.getPlayer());
     }
 }

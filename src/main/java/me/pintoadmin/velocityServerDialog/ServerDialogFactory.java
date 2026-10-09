@@ -21,10 +21,11 @@ public final class ServerDialogFactory {
     private static final ResourceLocation SELECT = new ResourceLocation(SelectionManager.NAMESPACE, "select");
     private static final ResourceLocation PASSWD = new ResourceLocation(SelectionManager.NAMESPACE, "passwd");
     private static final ResourceLocation QUIT   = new ResourceLocation(SelectionManager.NAMESPACE, "quit");
+    private static final ResourceLocation CLOSE   = new ResourceLocation(SelectionManager.NAMESPACE, "close");
 
     private ServerDialogFactory() {}
 
-    public static Dialog build(ConfigLoader cfg, List<RegisteredServer> servers, Map<String, Boolean> online, Player player, String clientType) {
+    public static Dialog build(SelectionManager manager, ConfigLoader cfg, List<RegisteredServer> servers, Map<String, Boolean> online, Player player, String clientType) {
         List<ActionButton> buttons = new ArrayList<>();
         for (RegisteredServer server : servers) {
             String name = server.getServerInfo().getName();
@@ -70,12 +71,12 @@ public final class ServerDialogFactory {
         }
 
         ActionButton quit = new ActionButton(
-                new CommonButtonData(Component.text("Disconnect", NamedTextColor.RED), null, 200),
-                new DynamicCustomAction(QUIT, new NBTCompound()));
+                new CommonButtonData(Component.text(manager.playersPostjoin.get(player) ? "Close" : "Disconnect", NamedTextColor.RED), null, 200),
+                new DynamicCustomAction(manager.playersPostjoin.get(player) ? CLOSE : QUIT, new NBTCompound()));
 
         CommonDialogData common = new CommonDialogData(
                 mm(cfg.title()), null,
-                /* canCloseWithEscape */ false,
+                /* canCloseWithEscape */ manager.playersPostjoin.get(player),
                 /* pause */ false,
                 DialogAction.NONE,
                 List.of(new PlainMessageDialogBody(new PlainMessage(mm(cfg.body()), 300))),
