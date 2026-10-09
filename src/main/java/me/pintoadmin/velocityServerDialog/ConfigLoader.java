@@ -55,8 +55,8 @@ public record ConfigLoader(
                 servers);
     }
 
-    public void reload() throws IOException {
-        load(dataDir);
+    public ConfigLoader reload() throws IOException {
+        return load(dataDir);
     }
 
     public void setMaintenance(Path dataDir, String serverName, boolean maintenance) throws IOException {

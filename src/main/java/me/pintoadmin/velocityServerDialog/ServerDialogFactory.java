@@ -33,7 +33,7 @@ public final class ServerDialogFactory {
         for (RegisteredServer server : servers) {
             String name = server.getServerInfo().getName();
             try {
-                cfg.reload();
+                cfg = cfg.reload();
             } catch (IOException e) {
                 e.printStackTrace();
             }
