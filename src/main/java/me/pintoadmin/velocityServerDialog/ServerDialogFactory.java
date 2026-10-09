@@ -12,6 +12,7 @@ import com.velocitypowered.api.proxy.server.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.*;
 
+import java.io.*;
 import java.util.*;
 import java.util.List;
 
@@ -31,6 +32,11 @@ public final class ServerDialogFactory {
         List<ActionButton> buttons = new ArrayList<>();
         for (RegisteredServer server : servers) {
             String name = server.getServerInfo().getName();
+            try {
+                cfg.reload();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             ConfigLoader.Entry entry = cfg.entry(name); // falls back to name/""
             boolean up = online.getOrDefault(name, false);
 
@@ -75,7 +81,7 @@ public final class ServerDialogFactory {
             DynamicCustomAction locked = new DynamicCustomAction(LOCKED, payload);
             DynamicCustomAction maintenance = new DynamicCustomAction(MAINTENANCE, payload);
 
-            Action finalAction = serverMaintenance ? maintenance : serverLocked ? locked : !serverPasswd.isBlank() ? passwd : action;
+            Action finalAction = serverMaintenance && !player.hasPermission(cfg.maintenancePerm()) ? maintenance : serverLocked ? locked : !serverPasswd.isBlank() ? passwd : action;
             ActionButton button = new ActionButton(data, finalAction);
             buttons.add(button);
         }

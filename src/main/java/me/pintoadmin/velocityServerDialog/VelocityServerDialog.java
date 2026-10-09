@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import java.io.*;
 import java.nio.file.*;
 
+import static me.pintoadmin.velocityServerDialog.Text.mm;
+
 public class VelocityServerDialog {
     private final ProxyServer proxy;
     private final Logger logger;
@@ -36,9 +38,28 @@ public class VelocityServerDialog {
                 .registerListener(new ClickPacketListener(proxy, manager), PacketListenerPriority.NORMAL);
 
         SimpleCommand serversCommand = invocation -> manager.sendServersDialog(invocation.source());
+        SimpleCommand maintenanceCommand = invocation -> {
+            CommandSource source = invocation.source();
+            String[] args = invocation.arguments();
+            if(args.length < 2) source.sendMessage(mm("<red>Usage: /serversdialogmaintenance <server> <true|false>"));
+            else {
+                String server = args[0];
+                boolean enabled = Boolean.parseBoolean(args[1]);
+                try {
+                    configLoader.setMaintenance(dataDir, server, enabled);
+                } catch (IOException e) {
+                    source.sendMessage(mm("<red>An error occured while setting maintenance mode for server: "+server));
+                    source.sendMessage(mm("<red>Check the console for more details"));
+                    logger.error(e.getStackTrace().toString());
+                }
+            }
+        };
 
         proxy.getCommandManager().register(
                 proxy.getCommandManager().metaBuilder("serversdialog").build(),
                 serversCommand);
+        proxy.getCommandManager().register(
+                proxy.getCommandManager().metaBuilder("serversdialogmaintenance").build(),
+                maintenanceCommand);
     }
 }

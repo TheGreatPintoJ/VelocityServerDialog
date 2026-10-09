@@ -10,8 +10,9 @@ import java.util.regex.*;
 
 public record ConfigLoader(
         int timeoutSeconds, boolean kickLegacyClients, int columns,
-       String defaultServer, String title, String body,
+       String defaultServer, String maintenancePerm, String title, String body,
        String kickQuit, List<Entry> servers){
+    private static Path dataDir = Path.of("");
 
     public record Entry(String velocity, String display, String description, String type, String permString, String pwString, boolean maintenance) {}
 
@@ -21,6 +22,7 @@ public record ConfigLoader(
     }
 
     public static ConfigLoader load(Path dataDir) throws IOException {
+        ConfigLoader.dataDir = dataDir;
         Files.createDirectories(dataDir);
         Path file = dataDir.resolve("config.toml");
         if (Files.notExists(file)){
@@ -46,13 +48,18 @@ public record ConfigLoader(
                 timeout,
                 "kick".equalsIgnoreCase(toml.getString("legacy-clients", "default")),
                 toml.getLong("columns", 1L).intValue(),
-                toml.getString("default-server"),
+                toml.getString("default-server", ""),
+                toml.getString("maintenance-perm", ""),
                 toml.getString("title"), toml.getString("body"),
-                toml.getString("kick-quit-message"),
+                toml.getString("kick-quit-message", "<gray>Goodbye!"),
                 servers);
     }
 
-    public static void setMaintenance(Path dataDir, String serverName, boolean maintenance) throws IOException {
+    public void reload() throws IOException {
+        load(dataDir);
+    }
+
+    public void setMaintenance(Path dataDir, String serverName, boolean maintenance) throws IOException {
         List<Entry> servers = load(dataDir).servers();
         Path file = dataDir.resolve("config.toml");
         String config = Files.readString(file);

@@ -7,7 +7,7 @@ legacy-clients = "default"
 columns = 1
 
 default-server = "lobby" # server in velocity.toml that the player will be sent to on timeout or without dialog support
-mantinence-perm = "mantinence.access" # Permission to access server that are under mantinence
+maintenance-perm = "mantinence.access" # Permission to access server that are under mantinence
 
 title = "<gold><bold>Choose a server"
 body  = "<gray>Pick where you want to play.\n<dark_gray>You'll be sent to the default server in 15 seconds."
