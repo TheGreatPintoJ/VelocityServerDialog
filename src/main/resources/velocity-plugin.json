@@ -1,0 +1,9 @@
+{
+  "id": "velocityserverdialog",
+  "name": "VelocityServerDialog",
+  "version": "${version}",
+  "main": "me.pintoadmin.velocityServerDialog.VelocityServerDialog",
+  "authors": [
+    "PintoJ"
+  ]
+}
