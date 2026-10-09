@@ -81,7 +81,6 @@ public final class ClickPacketListener implements PacketListener {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");
                         String passwd = tag.getStringTagValueOrNull("input_passwd");
-                        System.out.println("Server: " + server + " - " + passwd);
                         if (manager.checkPasswd(server, passwd)) {
                             manager.select(uuid, server, true);
                         }
