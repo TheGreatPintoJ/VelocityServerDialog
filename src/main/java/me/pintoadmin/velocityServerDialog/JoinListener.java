@@ -20,8 +20,6 @@ public final class JoinListener {
     private final ConfigLoader config;
     private final SelectionManager manager;
 
-    public static final List<Player> fabricPlayers = new ArrayList<>();
-
     public JoinListener(ProxyServer proxy, Logger logger, ConfigLoader config, SelectionManager manager) {
         this.proxy = proxy;
         this.logger = logger;
@@ -52,7 +50,7 @@ public final class JoinListener {
                     .toArray(CompletableFuture[]::new);
 
             CompletableFuture.allOf(pings).whenComplete((v, err) ->
-                    manager.begin(event, continuation, online));
+                    manager.begin(event, continuation, online, false));
         });
     }
 
@@ -60,18 +58,5 @@ public final class JoinListener {
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         manager.abandon(event.getPlayer().getUniqueId());
-    }
-
-    @Subscribe
-    public void onChannelRegister(PlayerChannelRegisterEvent event) {
-        // getChannels() returns a List<ChannelIdentifier>
-        for (ChannelIdentifier channel : event.getChannels()) {
-            String channelId = channel.getId().toLowerCase();
-
-            if (channelId.contains("fabric")) {
-                // This client is actively declaring Fabric plugin messaging capabilities
-                fabricPlayers.add(event.getPlayer());
-            }
-        }
     }
 }

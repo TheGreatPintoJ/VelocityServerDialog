@@ -3,11 +3,14 @@ package me.pintoadmin.velocityServerDialog;
 import com.github.retrooper.packetevents.*;
 import com.github.retrooper.packetevents.protocol.dialog.*;
 import com.github.retrooper.packetevents.wrapper.configuration.server.*;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
+import com.velocitypowered.api.command.*;
 import com.velocitypowered.api.event.*;
 import com.velocitypowered.api.event.player.*;
 import com.velocitypowered.api.proxy.*;
 import com.velocitypowered.api.proxy.server.*;
 import com.velocitypowered.api.scheduler.*;
+import net.kyori.adventure.text.*;
 import org.slf4j.*;
 
 import java.util.*;
@@ -22,14 +25,9 @@ public final class SelectionManager {
     private record Pending(PlayerChooseInitialServerEvent event, Continuation continuation,
                            ScheduledTask timeoutTask, Set<String> onlineServers, Dialog dialog) {}
 
-    private void resend(Pending p) {
+    private void resend(Pending p, boolean postjoin) {
         PacketEvents.getAPI().getPlayerManager()
-                .sendPacket(p.event().getPlayer(), new WrapperConfigServerShowDialog(p.dialog()));
-    }
-
-    private void showDialog(Player player, Dialog dialog){
-        PacketEvents.getAPI().getPlayerManager()
-                .sendPacket(player, new WrapperConfigServerShowDialog(dialog));
+                .sendPacket(p.event().getPlayer(), postjoin ? new WrapperPlayServerShowDialog(p.dialog()) : new WrapperConfigServerShowDialog(p.dialog()));
     }
 
     private final Map<UUID, Pending> pending = new ConcurrentHashMap<>();
@@ -54,21 +52,21 @@ public final class SelectionManager {
                 .toList();
     }
 
-    public void begin(PlayerChooseInitialServerEvent event, Continuation cont, Map<String, Boolean> online) {
+    public void begin(PlayerChooseInitialServerEvent event, Continuation cont, Map<String, Boolean> online, boolean postjoin) {
         Player player = event.getPlayer();
-        if (!player.isActive()) { cont.resume(); return; }
+        if (!player.isActive() && cont != null) { cont.resume(); return; }
 
         // Feature 5: on timeout, close the dialog and fall back to Velocity's "try" list
         ScheduledTask task = proxy.getScheduler().buildTask(plugin, () -> {
             Pending p = pending.remove(player.getUniqueId());   // atomic: only one winner
             if (p == null) return;
             PacketEvents.getAPI().getPlayerManager()
-                    .sendPacket(player, new WrapperConfigServerClearDialog());
+                    .sendPacket(player, postjoin ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
             Optional<RegisteredServer> defaultServer = listedServers().stream()
                     .filter(s -> s.getServerInfo().getName().equalsIgnoreCase(config.defaultServer()))
                     .findFirst();
             defaultServer.ifPresent(event::setInitialServer); // Set destination to default-server if it exists
-            p.continuation().resume();                            // resume velocity server placement
+            if(cont != null) p.continuation().resume();                            // resume velocity server placement
         }).delay(config.timeoutSeconds(), TimeUnit.SECONDS).schedule();
 
         Set<String> up = online.entrySet().stream()
@@ -96,11 +94,22 @@ public final class SelectionManager {
         Dialog dialog = ServerDialogFactory.build(config, listedServers(), online, player, brand);
         Pending p = new Pending(event, cont, task, up, dialog);
         pending.put(player.getUniqueId(), p);
-        resend(p);
+        resend(p, postjoin);
+    }
+
+    public void sendServersDialog(CommandSource source){
+        Map<String, Boolean> online = new ConcurrentHashMap<>();
+        CompletableFuture<?>[] pings = listedServers().stream()
+                .map(s -> s.ping()
+                        .orTimeout(1500, TimeUnit.MILLISECONDS)
+                        .handle((ping, err) -> online.put(s.getServerInfo().getName(), err == null)))
+                .toArray(CompletableFuture[]::new);
+        Player p = (Player) source;
+        begin(new PlayerChooseInitialServerEvent(p, null), null, online, true);
     }
 
     /** Feature 4. Called from the PacketEvents thread. */
-    public void select(UUID uuid, String serverName) {
+    public void select(UUID uuid, String serverName, boolean postjoin) {
         Pending p = pending.get(uuid);
         if (p == null) return;
 
@@ -110,7 +119,7 @@ public final class SelectionManager {
         // Never trust the client: unknown or offline means ignore. The dialog stays open
         // because afterAction=WAIT_FOR_RESPONSE, so re-send it to make it clickable again.
         if (target.isEmpty() || !p.onlineServers().contains(target.get().getServerInfo().getName())) {
-            resend(p);
+            resend(p, postjoin);
             return;
         }
         if (!pending.remove(uuid, p)) return;                   // lost race with timeout
@@ -118,29 +127,29 @@ public final class SelectionManager {
 
         Player player = p.event().getPlayer();
         PacketEvents.getAPI().getPlayerManager()
-                .sendPacket(player, new WrapperConfigServerClearDialog());
+                .sendPacket(player, postjoin ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
         p.event().setInitialServer(target.get());
-        p.continuation().resume();
+        if(p.continuation() != null) p.continuation().resume();
     }
 
-    public void passwd(UUID uuid, String serverName){
+    public void passwd(UUID uuid, String serverName, boolean postjoin){
         Pending p = pending.get(uuid);
         if (p == null) return;
 
         Player player = p.event().getPlayer();
         PacketEvents.getAPI().getPlayerManager()
-                .sendPacket(player, new WrapperConfigServerClearDialog());
+                .sendPacket(player, postjoin ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
 
         Pending pw = passwdPendings.get(serverName);
-        resend(pw);
+        resend(pw, postjoin);
     }
 
-    public void passwd_back(UUID uuid){
+    public void passwd_back(UUID uuid, boolean postjoin){
         Pending p = pending.get(uuid);
         if (p == null) return;
         PacketEvents.getAPI().getPlayerManager()
-                .sendPacket(p.event.getPlayer(), new WrapperConfigServerClearDialog());
-        resend(p);
+                .sendPacket(p.event.getPlayer(), postjoin ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
+        resend(p, postjoin);
     }
 
     public boolean checkPasswd(String server, String passwd){
@@ -148,14 +157,14 @@ public final class SelectionManager {
         return entry.isPresent() && entry.get().pwString().equals(passwd);
     }
 
-    public void quit(UUID uuid) {
+    public void quit(UUID uuid, boolean postjoin) {
         Pending p = pending.remove(uuid);
         if (p == null) return;
         PacketEvents.getAPI().getPlayerManager()
-                .sendPacket(p.event.getPlayer(), new WrapperConfigServerClearDialog());
+                .sendPacket(p.event.getPlayer(), postjoin ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
         p.timeoutTask().cancel();
         p.event().getPlayer().disconnect(mm(config.kickQuit()));
-        p.continuation().resume();
+        if(p.continuation() != null) p.continuation().resume();
     }
 
     /** Feature 7: the player disconnected on their own. */
@@ -163,6 +172,6 @@ public final class SelectionManager {
         Pending p = pending.remove(uuid);
         if (p == null) return;
         p.timeoutTask().cancel();
-        p.continuation().resume();
+        if(p.continuation() != null) p.continuation().resume();
     }
 }

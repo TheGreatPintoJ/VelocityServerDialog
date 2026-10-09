@@ -17,42 +17,81 @@ public final class ClickPacketListener implements PacketListener {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() != PacketType.Configuration.Client.CUSTOM_CLICK_ACTION) return;
+        if (event.getPacketType() == PacketType.Configuration.Client.CUSTOM_CLICK_ACTION) {
 
-        var packet = new WrapperConfigClientCustomClickAction(event);
-        ResourceLocation id = packet.getId();
-        if (!SelectionManager.NAMESPACE.equals(id.getNamespace())) return;
+            var packet = new WrapperConfigClientCustomClickAction(event);
+            ResourceLocation id = packet.getId();
+            if (!SelectionManager.NAMESPACE.equals(id.getNamespace())) return;
 
-        event.setCancelled(true); // Velocity never sees it (it would drop it anyway with no backend)
-        UUID uuid = event.getUser().getUUID();
-        if (uuid == null) return;
+            event.setCancelled(true); // Velocity never sees it (it would drop it anyway with no backend)
+            UUID uuid = event.getUser().getUUID();
+            if (uuid == null) return;
 
-        switch (id.getKey()) {
-            case "select" -> {
-                if (packet.getPayload() instanceof NBTCompound tag) {
-                    String server = tag.getStringTagValueOrNull("server");
-                    if (server != null) manager.select(uuid, server);
-                }
-            }
-            case "passwd" -> {
-                if (packet.getPayload() instanceof NBTCompound tag) {
-                    String server = tag.getStringTagValueOrNull("server");
-                    if (server != null) manager.passwd(uuid, server);
-                }
-            }
-            case "passwd_submit" -> {
-                if (packet.getPayload() instanceof NBTCompound tag) {
-                    String server = tag.getStringTagValueOrNull("server");
-                    String passwd = tag.getStringTagValueOrNull("input_passwd");
-                    System.out.println("Server: "+server+" - "+passwd);
-                    if (manager.checkPasswd(server, passwd)){
-                        manager.select(uuid, server);
+            switch (id.getKey()) {
+                case "select" -> {
+                    if (packet.getPayload() instanceof NBTCompound tag) {
+                        String server = tag.getStringTagValueOrNull("server");
+                        if (server != null) manager.select(uuid, server, false);
                     }
                 }
+                case "passwd" -> {
+                    if (packet.getPayload() instanceof NBTCompound tag) {
+                        String server = tag.getStringTagValueOrNull("server");
+                        if (server != null) manager.passwd(uuid, server, false);
+                    }
+                }
+                case "passwd_submit" -> {
+                    if (packet.getPayload() instanceof NBTCompound tag) {
+                        String server = tag.getStringTagValueOrNull("server");
+                        String passwd = tag.getStringTagValueOrNull("input_passwd");
+                        System.out.println("Server: " + server + " - " + passwd);
+                        if (manager.checkPasswd(server, passwd)) {
+                            manager.select(uuid, server, false);
+                        }
+                    }
+                }
+                case "back_pw" -> manager.passwd_back(uuid, false);
+                case "quit" -> manager.quit(uuid, false);
+                default -> {
+                }
             }
-            case "back_pw" -> manager.passwd_back(uuid);
-            case "quit" -> manager.quit(uuid);
-            default -> { }
+        } else if (event.getPacketType() == PacketType.Play.Client.CUSTOM_CLICK_ACTION){
+            var packet = new WrapperConfigClientCustomClickAction(event);
+            ResourceLocation id = packet.getId();
+            if (!SelectionManager.NAMESPACE.equals(id.getNamespace())) return;
+
+            event.setCancelled(true); // Velocity never sees it (it would drop it anyway with no backend)
+            UUID uuid = event.getUser().getUUID();
+            if (uuid == null) return;
+
+            switch (id.getKey()) {
+                case "select" -> {
+                    if (packet.getPayload() instanceof NBTCompound tag) {
+                        String server = tag.getStringTagValueOrNull("server");
+                        if (server != null) manager.select(uuid, server, true);
+                    }
+                }
+                case "passwd" -> {
+                    if (packet.getPayload() instanceof NBTCompound tag) {
+                        String server = tag.getStringTagValueOrNull("server");
+                        if (server != null) manager.passwd(uuid, server, true);
+                    }
+                }
+                case "passwd_submit" -> {
+                    if (packet.getPayload() instanceof NBTCompound tag) {
+                        String server = tag.getStringTagValueOrNull("server");
+                        String passwd = tag.getStringTagValueOrNull("input_passwd");
+                        System.out.println("Server: " + server + " - " + passwd);
+                        if (manager.checkPasswd(server, passwd)) {
+                            manager.select(uuid, server, true);
+                        }
+                    }
+                }
+                case "back_pw" -> manager.passwd_back(uuid, true);
+                case "quit" -> manager.quit(uuid, true);
+                default -> {
+                }
+            }
         }
     }
 }

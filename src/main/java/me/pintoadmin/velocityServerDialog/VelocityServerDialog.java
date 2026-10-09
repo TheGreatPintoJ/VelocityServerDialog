@@ -3,10 +3,12 @@ package me.pintoadmin.velocityServerDialog;
 import com.github.retrooper.packetevents.*;
 import com.github.retrooper.packetevents.event.*;
 import com.google.inject.Inject;
+import com.velocitypowered.api.command.*;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.plugin.annotation.*;
 import com.velocitypowered.api.proxy.*;
+import net.kyori.adventure.text.*;
 import org.slf4j.Logger;
 
 import java.io.*;
@@ -33,6 +35,10 @@ public class VelocityServerDialog {
         PacketEvents.getAPI().getEventManager()
                 .registerListener(new ClickPacketListener(manager), PacketListenerPriority.NORMAL);
 
-        logger.info("VelocityServerDialog Initialized!");
+        SimpleCommand serversCommand = invocation -> manager.sendServersDialog(invocation.source());
+
+        proxy.getCommandManager().register(
+                proxy.getCommandManager().metaBuilder("serversdialog").build(),
+                serversCommand);
     }
 }
