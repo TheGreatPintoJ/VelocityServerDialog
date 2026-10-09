@@ -1,24 +1,30 @@
-package me.pintoadmin.serverSelector;
+package me.pintoadmin.velocityServerDialog;
 
 import com.velocitypowered.api.event.*;
 import com.velocitypowered.api.event.connection.*;
 import com.velocitypowered.api.event.player.*;
 import com.velocitypowered.api.network.*;
 import com.velocitypowered.api.proxy.*;
+import com.velocitypowered.api.proxy.messages.*;
 import com.velocitypowered.api.proxy.server.*;
+import org.slf4j.*;
 
 import java.util.*;
 import java.util.concurrent.*;
 
-import static me.pintoadmin.serverSelector.Text.mm;
+import static me.pintoadmin.velocityServerDialog.Text.*;
 
 public final class JoinListener {
     private final ProxyServer proxy;
-    private final SelectorConfig config;
+    private final Logger logger;
+    private final ConfigLoader config;
     private final SelectionManager manager;
 
-    public JoinListener(ProxyServer proxy, SelectorConfig config, SelectionManager manager) {
+    public static final List<Player> fabricPlayers = new ArrayList<>();
+
+    public JoinListener(ProxyServer proxy, Logger logger, ConfigLoader config, SelectionManager manager) {
         this.proxy = proxy;
+        this.logger = logger;
         this.config = config;
         this.manager = manager;
     }
@@ -29,7 +35,7 @@ public final class JoinListener {
 
         // Feature 6: no dialog support before 1.21.6
         if (player.getProtocolVersion().lessThan(ProtocolVersion.MINECRAFT_1_21_6)) {
-            if (config.kickLegacyClients()) player.disconnect(mm(config.kickLegacy()));
+            if (config.kickLegacyClients()) player.disconnect(mm(config.kickQuit()));
             return null; // leave Velocity's default choice untouched
         }
 
@@ -54,5 +60,18 @@ public final class JoinListener {
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         manager.abandon(event.getPlayer().getUniqueId());
+    }
+
+    @Subscribe
+    public void onChannelRegister(PlayerChannelRegisterEvent event) {
+        // getChannels() returns a List<ChannelIdentifier>
+        for (ChannelIdentifier channel : event.getChannels()) {
+            String channelId = channel.getId().toLowerCase();
+
+            if (channelId.contains("fabric")) {
+                // This client is actively declaring Fabric plugin messaging capabilities
+                fabricPlayers.add(event.getPlayer());
+            }
+        }
     }
 }

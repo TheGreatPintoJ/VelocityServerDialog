@@ -1,4 +1,4 @@
-package me.pintoadmin.serverSelector;
+package me.pintoadmin.velocityServerDialog;
 
 import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.minimessage.*;

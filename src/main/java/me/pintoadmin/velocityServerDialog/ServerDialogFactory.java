@@ -7,24 +7,24 @@ import com.github.retrooper.packetevents.protocol.dialog.body.*;
 import com.github.retrooper.packetevents.protocol.dialog.button.*;
 import com.github.retrooper.packetevents.protocol.nbt.*;
 import com.github.retrooper.packetevents.resources.*;
+import com.velocitypowered.api.proxy.*;
 import com.velocitypowered.api.proxy.server.*;
-import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.*;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
 import static me.pintoadmin.velocityServerDialog.Text.*;
 
-public final class DialogFactory {
+public final class ServerDialogFactory {
     private static final ResourceLocation SELECT = new ResourceLocation(SelectionManager.NAMESPACE, "select");
+    private static final ResourceLocation PASSWD = new ResourceLocation(SelectionManager.NAMESPACE, "passwd");
     private static final ResourceLocation QUIT   = new ResourceLocation(SelectionManager.NAMESPACE, "quit");
 
-    private DialogFactory() {}
+    private ServerDialogFactory() {}
 
-    public static Dialog build(ConfigLoader cfg, List<RegisteredServer> servers, Map<String, Boolean> online, String clientType) {
+    public static Dialog build(ConfigLoader cfg, List<RegisteredServer> servers, Map<String, Boolean> online, Player player, String clientType) {
         List<ActionButton> buttons = new ArrayList<>();
         for (RegisteredServer server : servers) {
             String name = server.getServerInfo().getName();
@@ -32,6 +32,11 @@ public final class DialogFactory {
             boolean up = online.getOrDefault(name, false);
 
             boolean serverLocked = false;
+            String serverPasswd = entry.pwString();
+            String serverPerm = entry.permString();
+
+            if(!serverPerm.isBlank() && !player.hasPermission(serverPerm))
+                serverLocked = true;
 
             if(!Objects.equals(entry.type(), "vanilla")) { // non-vanilla server
                 if(clientType.contains("vanilla")){ // vanilla client
@@ -57,8 +62,10 @@ public final class DialogFactory {
 
             CommonButtonData data = new CommonButtonData(label, tooltip, 200);
             DynamicCustomAction action = new DynamicCustomAction(SELECT, payload);
-            ActionButton button = new ActionButton(data, serverLocked ? null : action);
+            DynamicCustomAction passwd = new DynamicCustomAction(PASSWD, payload);
 
+            Action finalAction = serverLocked ? null : !serverPasswd.isBlank() ? passwd : action;
+            ActionButton button = new ActionButton(data, finalAction);
             buttons.add(button);
         }
 
@@ -70,7 +77,7 @@ public final class DialogFactory {
                 mm(cfg.title()), null,
                 /* canCloseWithEscape */ false,
                 /* pause */ false,
-                DialogAction.WAIT_FOR_RESPONSE,
+                DialogAction.NONE,
                 List.of(new PlainMessageDialogBody(new PlainMessage(mm(cfg.body()), 300))),
                 List.of());
 

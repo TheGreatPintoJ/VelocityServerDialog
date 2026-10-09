@@ -1,0 +1,34 @@
+# Seconds before an undecided player is sent to the default server from velocity.toml's "try" list
+# (clamped 5..25; client times out ~30s)
+timeout-seconds = 15
+# What to do with clients older than 1.21.6 (no dialog support): "default" | "kick"
+legacy-clients = "default"
+# Number of columns in the dialog GUI
+columns = 1
+
+default-server = "lobby" # server in velocity.toml that the player will be sent to on timeout or without dialog support
+
+title = "<gold><bold>Choose a server"
+body  = "<gray>Pick where you want to play.\n<dark_gray>You'll be sent to the default server in 15 seconds."
+kick-quit-message = "<gray>Goodbye!"
+
+# Leave empty to list every server registered in velocity.toml
+[[server]]
+velocity = "lobby"           # name in velocity.toml
+display = "<green>Lobby"
+description = "<gray>Hub & minigames"
+type = "vanilla" # server type - used to check client/server version for modded
+
+[[server]]
+velocity = "survival"
+display = "<aqua>Survival"
+description = "<gray>Vanilla survival"
+type = "vanilla"
+permission = "server.survival"
+
+[[server]]
+velocity = "modded"
+display = "<gold>Modded Survival"
+description = "<gray>Modded survival"
+type = "fabric"
+password = "moddedpw"

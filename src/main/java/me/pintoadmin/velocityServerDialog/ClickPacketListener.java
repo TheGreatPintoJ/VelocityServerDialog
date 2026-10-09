@@ -1,4 +1,4 @@
-package me.pintoadmin.serverSelector;
+package me.pintoadmin.velocityServerDialog;
 
 import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.protocol.nbt.*;
@@ -34,6 +34,23 @@ public final class ClickPacketListener implements PacketListener {
                     if (server != null) manager.select(uuid, server);
                 }
             }
+            case "passwd" -> {
+                if (packet.getPayload() instanceof NBTCompound tag) {
+                    String server = tag.getStringTagValueOrNull("server");
+                    if (server != null) manager.passwd(uuid, server);
+                }
+            }
+            case "passwd_submit" -> {
+                if (packet.getPayload() instanceof NBTCompound tag) {
+                    String server = tag.getStringTagValueOrNull("server");
+                    String passwd = tag.getStringTagValueOrNull("input_passwd");
+                    System.out.println("Server: "+server+" - "+passwd);
+                    if (manager.checkPasswd(server, passwd)){
+                        manager.select(uuid, server);
+                    }
+                }
+            }
+            case "back_pw" -> manager.passwd_back(uuid);
             case "quit" -> manager.quit(uuid);
             default -> { }
         }
