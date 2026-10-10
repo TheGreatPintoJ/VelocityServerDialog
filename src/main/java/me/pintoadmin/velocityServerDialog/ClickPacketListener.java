@@ -21,11 +21,13 @@ public final class ClickPacketListener implements PacketListener {
     private final ProxyServer proxy;
     private final SelectionManager manager;
     private final DBManager dbManager;
+    private final ConfigLoader config;
 
-    public ClickPacketListener(ProxyServer proxy, SelectionManager manager, DBManager dbManager) {
+    public ClickPacketListener(ProxyServer proxy, SelectionManager manager, DBManager dbManager, ConfigLoader config) {
         this.proxy = proxy;
         this.manager = manager;
         this.dbManager = dbManager;
+        this.config = config;
     }
 
     @Override
@@ -67,7 +69,7 @@ public final class ClickPacketListener implements PacketListener {
                         if (server != null)
                             try {
                                 String savedPasswd = dbManager.getSavedPassword(uuid, server);
-                                if(savedPasswd != null && manager.checkPasswd(server, savedPasswd)){
+                                if(config.savePasswords() && savedPasswd != null && manager.checkPasswd(server, savedPasswd)){
                                     manager.select(uuid, server);
                                 } else throw new SQLException();
                             } catch (SQLException e) {
@@ -82,7 +84,8 @@ public final class ClickPacketListener implements PacketListener {
 
                         if (manager.checkPasswd(server, passwd)) {
                             try {
-                                dbManager.addSavedPassword(uuid, server, passwd);
+                                if(config.savePasswords())
+                                    dbManager.addSavedPassword(uuid, server, passwd);
                             } catch (SQLException e) {
                                 e.printStackTrace();
                             }

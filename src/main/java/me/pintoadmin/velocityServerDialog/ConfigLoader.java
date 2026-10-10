@@ -10,7 +10,7 @@ import java.util.regex.*;
 
 public record ConfigLoader(
         int timeoutSeconds, boolean kickLegacyClients, int columns,
-       String defaultServer, String maintenancePerm, String title, String body,
+       String defaultServer, String maintenancePerm, boolean savePasswords, String title, String body,
        String kickQuit, List<Entry> servers){
     private static Path dataDir = Path.of("");
 
@@ -50,6 +50,7 @@ public record ConfigLoader(
                 toml.getLong("columns", 1L).intValue(),
                 toml.getString("default-server", ""),
                 toml.getString("maintenance-perm", ""),
+                toml.getBoolean("save-passwords", false),
                 toml.getString("title"), toml.getString("body"),
                 toml.getString("kick-quit-message", "<gray>Goodbye!"),
                 servers);

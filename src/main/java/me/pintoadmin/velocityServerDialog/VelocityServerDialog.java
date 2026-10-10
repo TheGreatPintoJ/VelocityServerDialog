@@ -36,7 +36,7 @@ public class VelocityServerDialog {
 
         proxy.getEventManager().register(this, new JoinListener(proxy, logger, configLoader, manager));
         PacketEvents.getAPI().getEventManager()
-                .registerListener(new ClickPacketListener(proxy, manager, dbManager), PacketListenerPriority.NORMAL);
+                .registerListener(new ClickPacketListener(proxy, manager, dbManager, configLoader), PacketListenerPriority.NORMAL);
 
         SimpleCommand command = new MaintenanceCommand(configLoader, manager, dataDir, logger);
 
