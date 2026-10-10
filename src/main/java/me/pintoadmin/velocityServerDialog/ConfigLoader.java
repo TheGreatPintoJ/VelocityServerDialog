@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.regex.*;
 
 public record ConfigLoader(
-        int timeoutSeconds, boolean kickLegacyClients, int columns,
+        int timeoutSeconds, boolean kickOnTimeout, boolean kickLegacyClients, int columns,
        String defaultServer, String maintenancePerm, boolean savePasswords, String title, String body,
        String kickQuit, List<Entry> servers){
     private static Path dataDir = Path.of("");
@@ -47,6 +47,7 @@ public record ConfigLoader(
         int timeout = Math.clamp(toml.getLong("timeout-seconds", 15L), 2, 25);
         return new ConfigLoader(
                 timeout,
+                "kick".equalsIgnoreCase(toml.getString("on-timeout", "default")),
                 "kick".equalsIgnoreCase(toml.getString("legacy-clients", "default")),
                 toml.getLong("columns", 1L).intValue(),
                 toml.getString("default-server", ""),

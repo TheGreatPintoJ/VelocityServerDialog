@@ -107,6 +107,7 @@ public final class SelectionManager {
                     .findFirst();
             defaultServer.ifPresent(event::setInitialServer); // Set destination to default-server if it exists
             playersPostjoin.put(p.event.getPlayer(), true);
+            if(config.kickOnTimeout()) p.event.getPlayer().disconnect(mm("<red>You timed out! Select a server."));
             if(cont != null) p.continuation().resume();                            // resume velocity server placement
         }).delay(config.timeoutSeconds(), TimeUnit.SECONDS);
 

@@ -1,6 +1,7 @@
 # Seconds before an undecided player is sent to the default server from velocity.toml's "try" list
 # (clamped 5..25; client times out ~30s)
 timeout-seconds = 15
+on-timeout = "default" # What do do when a client times out: "default" | "kick"
 # What to do with clients older than 1.21.6 (no dialog support): "default" | "kick"
 legacy-clients = "default"
 # Number of columns in the dialog GUI
