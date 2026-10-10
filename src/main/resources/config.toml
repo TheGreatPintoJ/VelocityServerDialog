@@ -35,3 +35,4 @@ display = "<gold>Modded Survival"
 description = "<gray>Modded survival"
 type = "fabric"
 password = "moddedpw"
+show-permission = "velocityserverdialog.show.modded" # a permission the player needs to see this entry

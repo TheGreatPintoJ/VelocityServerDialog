@@ -14,11 +14,11 @@ public record ConfigLoader(
        String kickQuit, List<Entry> servers){
     private static Path dataDir = Path.of("");
 
-    public record Entry(String velocity, String display, String description, String type, String permString, String pwString, boolean maintenance) {}
+    public record Entry(String velocity, String display, String description, String type, String permString, String showPermString, String pwString, boolean maintenance) {}
 
     public Entry entry(String velocityName) {
         return servers.stream().filter(e -> e.velocity().equalsIgnoreCase(velocityName)).findFirst()
-                .orElse(new Entry(velocityName, velocityName, "", "vanilla", "", "", false));
+                .orElse(new Entry(velocityName, velocityName, "", "vanilla", "", "", "", false));
     }
 
     public static ConfigLoader load(Path dataDir) throws IOException {
@@ -38,10 +38,11 @@ public record ConfigLoader(
             String description = t.getString("description");
             String type = t.getString("type");
             String perm = t.getString("permission", "");
+            String showPerm = t.getString("show-permission", "");
             String pass = t.getString("password", "");
             boolean maintenance = t.getBoolean("maintenance", false);
 
-            servers.add(new Entry(velocityName, display, description, type, perm, pass, maintenance));
+            servers.add(new Entry(velocityName, display, description, type, perm, showPerm, pass, maintenance));
         }
         int timeout = Math.clamp(toml.getLong("timeout-seconds", 15L), 2, 25);
         return new ConfigLoader(

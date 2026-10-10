@@ -30,10 +30,10 @@ public class MaintenanceCommand implements SimpleCommand {
 
         String[] args = invocation.arguments();
         if(args.length == 0) {
-            if(!source.hasPermission("velocityserversdialog.serversdialog")) return;
+            if(!source.hasPermission("velocityserverdialog.serversdialog")) return;
             manager.sendServersDialog(invocation.source());
         } else {
-            if(!source.hasPermission("velocityserversdialog.serversdialog.maintenance")) return;
+            if(!source.hasPermission("velocityserverdialog.serversdialog.maintenance")) return;
             if (args.length < 2) source.sendMessage(mm("<red>Usage: /serversdialog <server> <maintenance: true|false>"));
             else {
                 String server = args[0];

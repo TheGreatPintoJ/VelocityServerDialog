@@ -93,7 +93,9 @@ public final class ServerDialogFactory {
 
             Action finalAction = serverMaintenance && !player.hasPermission(cfg.maintenancePerm()) ? maintenance : serverLocked ? locked : !serverPasswd.isBlank() ? passwd : action;
             ActionButton button = new ActionButton(data, finalAction);
-            buttons.add(button);
+            String showPerm = entry.showPermString();
+            if(showPerm.isEmpty() || player.hasPermission(showPerm))
+                buttons.add(button);
         }
 
         ActionButton quit = new ActionButton(
