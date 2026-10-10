@@ -18,6 +18,11 @@ public final class NoticeDialogFactory {
 
     private NoticeDialogFactory() {}
 
+    /**
+     * A custom notice dialog
+     * @param notice the notice to show the player. MiniMessage supported
+     * @return the NoticeDialog built
+     */
     public static Dialog build(String notice) {
         ActionButton back = new ActionButton(
                 new CommonButtonData(Component.text("Back", NamedTextColor.RED), null, 200),

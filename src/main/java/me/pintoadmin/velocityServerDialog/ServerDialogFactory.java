@@ -28,6 +28,16 @@ public final class ServerDialogFactory {
 
     private ServerDialogFactory() {}
 
+    /**
+     * Builds an instance of the main server picker dialog
+     * @param manager the SelectionManager instance to handle selections
+     * @param cfg the ConfigLoader instance to load info from
+     * @param servers the servers registered in config file
+     * @param online the map of server to online state
+     * @param player the player to create the dialog for
+     * @param clientType the client brand of the player in question
+     * @return the built MultiActionDialog
+     */
     public static Dialog build(SelectionManager manager, ConfigLoader cfg, List<RegisteredServer> servers, Map<String, Boolean> online, Player player, String clientType) {
         List<ActionButton> buttons = new ArrayList<>();
         for (RegisteredServer server : servers) {

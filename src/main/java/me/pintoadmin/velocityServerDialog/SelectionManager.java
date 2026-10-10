@@ -27,16 +27,29 @@ public final class SelectionManager {
     private record Pending(PlayerChooseInitialServerEvent event, Continuation continuation,
                            ScheduledTask timeoutTask, Set<String> onlineServers, Dialog dialog) {}
 
+    /**
+     * Resend a Pending object to its player - correct for player state (playing/config)
+     * @param p the Pending to send
+     */
     private void resend(Pending p) {
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(p.event().getPlayer(), playersPostjoin.get(p.event.getPlayer()) ? new WrapperPlayServerShowDialog(p.dialog()) : new WrapperConfigServerShowDialog(p.dialog()));
     }
 
+    /**
+     * Clear the dialog from the player - correct for player state (playing/config)
+     * @param player the player to clear from
+     */
     private void clearDialog(Player player){
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
     }
 
+    /**
+     * Show a dialog to a player - correct for player state (playing/config)
+     * @param player the player to send the dialog to
+     * @param dialog the dialog to send to the player
+     */
     private void showDialog(Player player, Dialog dialog){
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerShowDialog(dialog) : new WrapperConfigServerShowDialog(dialog));
@@ -49,6 +62,13 @@ public final class SelectionManager {
     private final ConfigLoader config;
     private final Logger logger;
 
+    /**
+     * Class to handle dialog selections and dialog sending
+     * @param plugin this plugin
+     * @param proxy the operating proxy
+     * @param config the ConfigLoader instance to load from
+     * @param logger the proxy's logger
+     */
     public SelectionManager(Object plugin, ProxyServer proxy, ConfigLoader config, Logger logger) {
         this.plugin = plugin;
         this.proxy = proxy;
@@ -56,6 +76,9 @@ public final class SelectionManager {
         this.logger = logger;
     }
 
+    /**
+     * @return the list of servers from the config. Teturns all from proxy if none specified in config
+     */
     public List<RegisteredServer> listedServers() {
         if (config.servers().isEmpty()) return List.copyOf(proxy.getAllServers());
         return config.servers().stream()
@@ -64,6 +87,12 @@ public final class SelectionManager {
                 .toList();
     }
 
+    /**
+     * Begin the server picker dialog
+     * @param event the PlayerChooseInitialServerEvent to interact with
+     * @param cont the Continuation of the proxy's placement task
+     * @param online the Map of servers to online state
+     */
     public void begin(PlayerChooseInitialServerEvent event, Continuation cont, Map<String, Boolean> online) {
         Player player = event.getPlayer();
         if (!player.isActive() && cont != null) { cont.resume(); return; }
@@ -112,6 +141,10 @@ public final class SelectionManager {
         resend(p);
     }
 
+    /**
+     * Sends the main server picker dialog to a CommandSource
+     * @param source the CommandSource to send the dialog to
+     */
     public void sendServersDialog(CommandSource source){
         Map<String, Boolean> online = new ConcurrentHashMap<>();
         CompletableFuture<?>[] pings = listedServers().stream()
@@ -124,7 +157,11 @@ public final class SelectionManager {
                 begin(new PlayerChooseInitialServerEvent(p, null), null, online));
     }
 
-    /** Feature 4. Called from the PacketEvents thread. */
+    /**
+     * Signifies a selection click
+     * @param uuid the uuid of the player who clicked
+     * @param serverName the name of the server the player clicked on
+     */
     public void select(UUID uuid, String serverName) {
         Pending p = pending.get(uuid);
         if (p == null) return;
@@ -154,6 +191,11 @@ public final class SelectionManager {
         if(p.continuation() != null) p.continuation().resume();
     }
 
+    /**
+     * Signifies a click on a password-protected server
+     * @param uuid the uuid of the player who clicked
+     * @param serverName the name of the server the player clicked on
+     */
     public void passwd(UUID uuid, String serverName){
         Pending p = pending.get(uuid);
         if (p == null) return;
@@ -165,11 +207,20 @@ public final class SelectionManager {
         resend(pw);
     }
 
+    /**
+     * Sends a custom dialog to a player, called from the PacketEvents thread
+     * @param uuid the uuid of the player to send the dialog to
+     * @param dialog the dialog to send to the player
+     */
     public void custom(UUID uuid, Dialog dialog){
         Optional<Player> player = proxy.getPlayer(uuid);
         player.ifPresent(value -> showDialog(value, dialog));
     }
 
+    /**
+     * Signifies a click on a 'back' button. Sends the player back to the main server picker dialog
+     * @param uuid the uuid of the player who clicked
+     */
     public void back(UUID uuid){
         Pending p = pending.get(uuid);
         if (p == null) return;
@@ -177,11 +228,21 @@ public final class SelectionManager {
         resend(p);
     }
 
+    /**
+     * Checks the inputted password against the configuration file's password
+     * @param server the server in question
+     * @param passwd the password inputted by a player
+     * @return true if the password matches, false if not
+     */
     public boolean checkPasswd(String server, String passwd){
         Optional<ConfigLoader.Entry> entry = config.servers().stream().filter(e -> e.velocity().equalsIgnoreCase(server)).findFirst();
         return entry.isPresent() && entry.get().pwString().equals(passwd);
     }
 
+    /**
+     * Signifies a player clicking the 'disconnect' button. Disconnects the player
+     * @param uuid the player who clicked
+     */
     public void quit(UUID uuid) {
         Pending p = pending.remove(uuid);
         Optional<Player> player = proxy.getPlayer(uuid);
@@ -192,6 +253,10 @@ public final class SelectionManager {
         if(p != null && p.continuation() != null) p.continuation().resume();
     }
 
+    /**
+     * Signifiesd a player clicking the 'close' button. Closes the currently open dialog
+     * @param uuid the player who clicked
+     */
     public void close(UUID uuid){
         Pending p = pending.remove(uuid);
         if (p == null) return;
@@ -200,7 +265,10 @@ public final class SelectionManager {
         if(p.continuation() != null) p.continuation().resume();
     }
 
-    /** Feature 7: the player disconnected on their own. */
+    /**
+     * Called if the player disconnected independently. Cleanup tasks
+     * @param uuid the player who disconnected
+     */
     public void abandon(UUID uuid) {
         Pending p = pending.remove(uuid);
         if (p == null) return;
