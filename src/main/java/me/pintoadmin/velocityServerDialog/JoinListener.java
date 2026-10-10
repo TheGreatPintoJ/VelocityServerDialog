@@ -7,7 +7,7 @@ import com.velocitypowered.api.network.*;
 import com.velocitypowered.api.proxy.*;
 import com.velocitypowered.api.proxy.messages.*;
 import com.velocitypowered.api.proxy.server.*;
-import org.slf4j.*;
+import net.kyori.adventure.text.Component;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -16,13 +16,11 @@ import static me.pintoadmin.velocityServerDialog.Text.*;
 
 public final class JoinListener {
     private final ProxyServer proxy;
-    private final Logger logger;
     private final ConfigLoader config;
     private final SelectionManager manager;
 
-    public JoinListener(ProxyServer proxy, Logger logger, ConfigLoader config, SelectionManager manager) {
+    public JoinListener(ProxyServer proxy, ConfigLoader config, SelectionManager manager) {
         this.proxy = proxy;
-        this.logger = logger;
         this.config = config;
         this.manager = manager;
     }
@@ -41,6 +39,24 @@ public final class JoinListener {
 
         // Feature 1: suspend the event; Velocity won't connect until resume()
         return EventTask.withContinuation(continuation -> manager.begin(event, continuation));
+    }
+
+    @Subscribe
+    public void onInitialServerFailure(KickedFromServerEvent event){
+        if (!Boolean.FALSE.equals(manager.playersPostjoin.get(event.getPlayer()))) return;
+
+        Optional<Component> reasonOpt = event.getServerKickReason();
+
+        manager.showDialog(event.getPlayer(),
+                NoticeDialogFactory.build(
+                        mm("<red>Could not connect to server: ")
+                                .append(reasonOpt
+                                        .orElse(Component.text("Unknown reason")))));
+    }
+
+    @Subscribe
+    public void onServerConnected(ServerConnectedEvent event) {
+        manager.playersPostjoin.put(event.getPlayer(), true);
     }
 
     // Feature 7: player closed the game while choosing

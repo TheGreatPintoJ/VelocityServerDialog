@@ -23,13 +23,16 @@ public final class NoticeDialogFactory {
      * @param notice the notice to show the player. MiniMessage supported
      * @return the NoticeDialog built
      */
-    public static Dialog build(String notice) {
+    public static Dialog build(String notice){
+        return build(mm(notice));
+    }
+    public static Dialog build(Component notice) {
         ActionButton back = new ActionButton(
                 new CommonButtonData(Component.text("Back", NamedTextColor.RED), null, 200),
                 new DynamicCustomAction(BACK, new NBTCompound()));
 
         CommonDialogData common = new CommonDialogData(
-                mm(notice), null,
+                notice, null,
                 /* canCloseWithEscape */ false,
                 /* pause */ false,
                 DialogAction.CLOSE,

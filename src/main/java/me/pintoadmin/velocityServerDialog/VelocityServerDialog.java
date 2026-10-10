@@ -34,7 +34,7 @@ public class VelocityServerDialog {
         SelectionManager manager = new SelectionManager(this, proxy, configLoader, logger);
         DBManager dbManager = new DBManager(proxy, logger, dataDir);
 
-        proxy.getEventManager().register(this, new JoinListener(proxy, logger, configLoader, manager));
+        proxy.getEventManager().register(this, new JoinListener(proxy, configLoader, manager));
         PacketEvents.getAPI().getEventManager()
                 .registerListener(new ClickPacketListener(proxy, manager, dbManager, configLoader), PacketListenerPriority.NORMAL);
 

@@ -41,7 +41,7 @@ public final class SelectionManager {
      * Clear the dialog from the player - correct for player state (playing/config)
      * @param player the player to clear from
      */
-    private void clearDialog(Player player){
+    public void clearDialog(Player player){
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
     }
@@ -51,7 +51,7 @@ public final class SelectionManager {
      * @param player the player to send the dialog to
      * @param dialog the dialog to send to the player
      */
-    private void showDialog(Player player, Dialog dialog){
+    public void showDialog(Player player, Dialog dialog){
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerShowDialog(dialog) : new WrapperConfigServerShowDialog(dialog));
     }
@@ -114,8 +114,6 @@ public final class SelectionManager {
     }
 
     public Map<String, Boolean> getOnlineServers() {
-        System.out.println("Called getOnline");
-
         Map<String, Boolean> online = new ConcurrentHashMap<>();
         CompletableFuture<?>[] pings = listedServers().stream()
                 .map(s -> s.ping()
@@ -152,7 +150,6 @@ public final class SelectionManager {
                     .filter(s -> s.getServerInfo().getName().equalsIgnoreCase(config.defaultServer()))
                     .findFirst();
             defaultServer.ifPresent(event::setInitialServer); // Set destination to default-server if it exists
-            playersPostjoin.put(p.event.getPlayer(), true);
             if(config.kickOnTimeout()) p.event.getPlayer().disconnect(mm("<red>You timed out! Select a server."));
             if(cont != null) p.continuation().resume();                            // resume velocity server placement
         }).delay(config.timeoutSeconds(), TimeUnit.SECONDS);
@@ -225,10 +222,16 @@ public final class SelectionManager {
 
         if(playersPostjoin.get(player)) player.createConnectionRequest(target.get()).connect().thenAccept((result) -> {
             clearDialog(player);
+            if(!result.isSuccessful()){
+                showDialog(player,
+                        NoticeDialogFactory.build(
+                                mm("<red>Could not connect to server: ")
+                                        .append(result.getReasonComponent()
+                                                .orElse(Component.text("Unknown reason")))));
+            }
         });
         else p.event().setInitialServer(target.get());
 
-        playersPostjoin.put(p.event.getPlayer(), true);
         if(p.continuation() != null) p.continuation().resume();
     }
 
