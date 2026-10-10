@@ -14,6 +14,7 @@ This is a velocity plugin to allow players to pick which server they want to joi
 - Per-server passwords
 - Modded client detection - prevent vanilla clients from attempting to join modded servers
 - Timeout - move player to a default server if they don't select one
+- Partial geyser support - buggy (WIP)
 
 ### Commands:
 - `/serversdialog` - Open server picker dialog - permission: `velocityserverdialog.serversdialog`
@@ -38,6 +39,7 @@ This is a velocity plugin to allow players to pick which server they want to joi
 # Seconds before an undecided player is sent to the default server from velocity.toml's "try" list
 # (clamped 5..25; client times out ~30s)
 timeout-seconds = 15
+on-timeout = "default" # What do do when a client times out: "default" | "kick"
 # What to do with clients older than 1.21.6 (no dialog support): "default" | "kick"
 legacy-clients = "default"
 # Number of columns in the dialog GUI
@@ -45,10 +47,16 @@ columns = 1
 
 default-server = "lobby" # server in velocity.toml that the player will be sent to on timeout or without dialog support
 maintenance-perm = "mantinence.access" # Permission to access server that are under mantinence
+save-passwords = true # save passwords to a sqlite database. one-time password entry if enabled
 
 title = "<gold><bold>Choose a server"
 body  = "<gray>Pick where you want to play.\n<dark_gray>You'll be sent to the default server in 15 seconds."
 kick-quit-message = "<gray>Goodbye!"
+
+[[group]]
+id = "smp"
+name = "<green>S<yellow>M<gold>P"
+hover = "<gold>SMP Servers"
 
 # Leave empty to list every server registered in velocity.toml
 [[server]]
@@ -60,6 +68,7 @@ maintenance = false
 
 [[server]]
 velocity = "survival"
+group = "smp"
 display = "<aqua>Survival"
 description = "<gray>Vanilla survival"
 type = "vanilla"
@@ -67,37 +76,51 @@ permission = "server.survival"
 
 [[server]]
 velocity = "modded"
+group = "smp"
 display = "<gold>Modded Survival"
 description = "<gray>Modded survival"
 type = "fabric"
 password = "moddedpw"
+show-permission = "velocityserverdialog.show.modded" # a permission the player needs to see this entry
 ```
 
 </details>
 
 ### Breakdown
 - `timeout-seconds` - The amount of time a player has before being sent to the default server. Default: 15
+- `on-timeout` - What do do when a client times out. Options: "default" | "kick"
 - `legacy-clients` - What to do with a client that is pre-1.21.6 (no dialog support). Options: "default", "kick". Default: "default"
 - `columns` - Number of columns to fit server buttons into. Default: 1
 - `default-server` - What velocity server to send legacy or timed-out clients to.
 - `maintenance-perm` - What permission to allow players to join servers under maintenance. Default: "maintenance.access"
+- `save-passwords` - Enable/disable saving passwords to the auth.db sqlite database
 - `title` - The title of the server picker dialog
 - `body` - The subheading of the server picker dialog
 - `kick-quit-message` - The message to send players when using the 'disconnect' button at the bottom of the dialog
+- Groups
+  - `id` - The id of this group - can be anything
+  - `name` - the display name for the dialog menu
+  - `hover` - the hover text for the dialog menu
 - Servers
   - `velocity` - Name of the server in `velocity.toml`
+  - `group` - The group that this server is a part of
   - `display` - The display name for the dialog menu
   - `description` - The hover text for the dialog menu
   - `type` - The type of server. "vanilla" for vanilla servers, anything else will require a non-vanilla client to join.
   - `permission` - The permission that the player must have to access this server via server picker dialog
   - `password` - The custom password that the player must enter to access this server via server picker dialog
   - `maintenance` - The enabled/disabled state of maintenance mode for this server. `true` is maintenance enabled, `false` is maintenance disabled
+  - `show-permission` - The permission a player must have for this server entry to show in the server picker dialog
+
+### Adding a group
+To add another server group to the dialog menu, open the configuration file and add a new `[[group]]` heading.
+Then add all required fields to the heading (`id`, `name`, `hover`).
+All config file changes will be loaded automatically without a server restart.
 
 ### Adding a server
 To add another server to the dialog menu, open the configuration file and add another `[[server]]` heading.
 Then add the appropriate information fields for the server (`velocity`,`display`,`description`, etc.)
 All config file changes will be loaded automatically without a server restart.
-
 
 
 ## Notes
