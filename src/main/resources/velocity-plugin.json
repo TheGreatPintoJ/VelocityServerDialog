@@ -5,6 +5,5 @@
   "main": "me.pintoadmin.velocityServerDialog.VelocityServerDialog",
   "authors": [
     "PintoJ"
-  ],
-  "dependencies": [{ "id": "packetevents", "optional": false }]
+  ]
 }

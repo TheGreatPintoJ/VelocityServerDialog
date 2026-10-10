@@ -43,7 +43,7 @@ public final class JoinListener {
 
     @Subscribe
     public void onInitialServerFailure(KickedFromServerEvent event){
-        if (!Boolean.FALSE.equals(manager.playersPostjoin.get(event.getPlayer()))) return;
+        if (!manager.playersPostjoin.get(event.getPlayer())) return;
 
         Optional<Component> reasonOpt = event.getServerKickReason();
 

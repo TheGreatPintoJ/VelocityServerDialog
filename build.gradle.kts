@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     compileOnly("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
-    compileOnly("com.github.retrooper:packetevents-velocity:2.14.0")
+    implementation("com.github.retrooper:packetevents-velocity:2.14.0")
     implementation("org.xerial:sqlite-jdbc:3.53.4.0")
 }
 
@@ -26,8 +26,13 @@ tasks {
     }
 
     shadowJar {
-        archiveClassifier.set("")
         mergeServiceFiles()
+        exclude("module-info.class")
+        exclude("META-INF/versions/**/module-info.class")
+
+        relocate("com.github.retrooper.packetevents", "me.pintoadmin.velocityServerDialog.shaded.com.github.retrooper.packetevents.api")
+        relocate("io.github.retrooper.packetevents", "me.pintoadmin.velocityServerDialog.shaded.io.github.retrooper.packetevents.impl")
+        archiveClassifier.set("")
     }
 
     build {

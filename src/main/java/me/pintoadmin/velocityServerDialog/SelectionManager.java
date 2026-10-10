@@ -164,11 +164,9 @@ public final class SelectionManager {
         // Feature 2: build and send the dialog
 
 //        logger.warn(player.getUsername() + " is connecting using: " + player.getClientBrand());
-        String brand = player.getClientBrand().split(":")[0];
+        String brand = "";
+        if(player.getClientBrand() != null) brand = player.getClientBrand().split(":")[0];
 
-        // loop through all servers
-        // build dialog for each passwd dialog
-        // add to passwdPendings
         for (ConfigLoader.Entry entry : config.servers()){
             String passwd = entry.pwString();
             if(passwd.isBlank()) continue;
@@ -241,12 +239,15 @@ public final class SelectionManager {
 
         List<RegisteredServer> groupServers = getGroupServers(group);
 
+        String brand = "";
+        if(player.get().getClientBrand() != null) brand = player.get().getClientBrand().split(":")[0];
+        
         clearDialog(player.get());
         showDialog(player.get(),
                 ServerDialogFactory.build(this, config,
                         List.of(), groupServers,
                         getOnlineServers(), player.get(),
-                        player.get().getClientBrand().split(":")[0]));
+                        brand));
     }
 
     /**
