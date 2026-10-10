@@ -203,8 +203,7 @@ public final class SelectionManager {
         Player player = p.event().getPlayer();
         clearDialog(player);
 
-        Pending pw = passwdPendings.get(serverName);
-        resend(pw);
+        showDialog(player, PasswordDialogFactory.build(config, serverName));
     }
 
     /**

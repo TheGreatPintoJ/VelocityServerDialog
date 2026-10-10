@@ -14,15 +14,18 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.velocitypowered.api.proxy.*;
 
 import java.awt.*;
+import java.sql.*;
 import java.util.*;
 
 public final class ClickPacketListener implements PacketListener {
     private final ProxyServer proxy;
     private final SelectionManager manager;
+    private final DBManager dbManager;
 
-    public ClickPacketListener(ProxyServer proxy, SelectionManager manager) {
+    public ClickPacketListener(ProxyServer proxy, SelectionManager manager, DBManager dbManager) {
         this.proxy = proxy;
         this.manager = manager;
+        this.dbManager = dbManager;
     }
 
     @Override
@@ -61,7 +64,15 @@ public final class ClickPacketListener implements PacketListener {
                 case "passwd" -> {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");
-                        if (server != null) manager.passwd(uuid, server);
+                        if (server != null)
+                            try {
+                                String savedPasswd = dbManager.getSavedPassword(uuid, server);
+                                if(savedPasswd != null && manager.checkPasswd(server, savedPasswd)){
+                                    manager.select(uuid, server);
+                                } else throw new SQLException();
+                            } catch (SQLException e) {
+                               manager.passwd(uuid, server);
+                            }
                     }
                 }
                 case "passwd_submit" -> {
@@ -70,6 +81,11 @@ public final class ClickPacketListener implements PacketListener {
                         String passwd = tag.getStringTagValueOrNull("input_passwd");
 
                         if (manager.checkPasswd(server, passwd)) {
+                            try {
+                                dbManager.addSavedPassword(uuid, server, passwd);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
                             manager.select(uuid, server);
                         }
                     }

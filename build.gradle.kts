@@ -1,6 +1,7 @@
 plugins {
     id("java-library")
     id("xyz.jpenilla.run-velocity") version "3.1.0"
+    id("com.gradleup.shadow") version "9.6.1"
 }
 
 repositories {
@@ -12,6 +13,7 @@ repositories {
 dependencies {
     compileOnly("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
     compileOnly("com.github.retrooper:packetevents-velocity:2.14.0")
+    implementation("org.xerial:sqlite-jdbc:3.53.4.0")
 }
 
 java {
@@ -19,13 +21,23 @@ java {
 }
 
 tasks {
+    jar {
+        enabled = false
+    }
+
+    shadowJar {
+        archiveClassifier.set("")
+        mergeServiceFiles()
+    }
+
+    build {
+        dependsOn(shadowJar)
+    }
+
     runVelocity {
-        // Configure the Velocity version for our task.
-        // This is the only required configuration besides applying the plugin.
-        // Your plugin's jar (or shadowJar if present) will be used automatically.
         velocityVersion("3.5.0-SNAPSHOT")
         downloadPlugins {
-            modrinth("packetevents", "2.14.0+velocity") // match the compileOnly version
+            modrinth("packetevents", "2.14.0+velocity")
         }
     }
 

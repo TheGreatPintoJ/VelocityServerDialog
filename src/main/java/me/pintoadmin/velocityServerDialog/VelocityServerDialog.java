@@ -32,10 +32,11 @@ public class VelocityServerDialog {
     public void onProxyInitialization(ProxyInitializeEvent event) throws IOException {
         ConfigLoader configLoader = ConfigLoader.load(dataDir);
         SelectionManager manager = new SelectionManager(this, proxy, configLoader, logger);
+        DBManager dbManager = new DBManager(proxy, logger, dataDir);
 
         proxy.getEventManager().register(this, new JoinListener(proxy, logger, configLoader, manager));
         PacketEvents.getAPI().getEventManager()
-                .registerListener(new ClickPacketListener(proxy, manager), PacketListenerPriority.NORMAL);
+                .registerListener(new ClickPacketListener(proxy, manager, dbManager), PacketListenerPriority.NORMAL);
 
         SimpleCommand command = new MaintenanceCommand(configLoader, manager, dataDir, logger);
 
