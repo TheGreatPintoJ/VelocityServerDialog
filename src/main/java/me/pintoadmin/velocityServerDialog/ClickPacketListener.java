@@ -90,7 +90,7 @@ public final class ClickPacketListener implements PacketListener {
                                 e.printStackTrace();
                             }
                             manager.select(uuid, server);
-                        }
+                        } else manager.custom(uuid, NoticeDialogFactory.build("<red>Wrong password!"));
                     }
                 }
                 case "back" -> manager.back(uuid);
