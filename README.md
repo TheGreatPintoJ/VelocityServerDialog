@@ -1,8 +1,9 @@
 # VelocityServerDialog
 
----
 <img src="imgs/login-dialog.png" alt="login-dialog.png" width="720" height="440">
+
 ---
+
 This is a velocity plugin to allow players to pick which server they want to join, before being thrown into a default.
 
 ### Features:
@@ -20,14 +21,14 @@ This is a velocity plugin to allow players to pick which server they want to joi
   - `<server>` - specify which server to change maintenance status 
   - `<maintenance: true|false>` - specify enable/disable maintenance
 
----
+
 ## Setup
 1. Place jarfile in a velocity proxy server (`plugins` directory)
 2. Start/restart velocity proxy
 3. Update config with backend server info
 4. Restart velocity proxy
 
----
+
 ## Config
 <details>
 
@@ -97,11 +98,12 @@ To add another server to the dialog menu, open the configuration file and add an
 Then add the appropriate information fields for the server (`velocity`,`display`,`description`, etc.)
 All config file changes will be loaded automatically without a server restart.
 
----
+
+
 ## Notes
 - The `default-server` setting takes priority over maintenance mode, passwords, and permission restrictions provided by this plugin. (If a server is both set as `maintenance = true` and `default-server`, the player will still be sent to that server after the timeout period)
 
----
+
 ## Images
 
 <details>
