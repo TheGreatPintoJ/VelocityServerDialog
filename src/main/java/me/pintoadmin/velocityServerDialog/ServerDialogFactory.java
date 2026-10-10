@@ -20,6 +20,7 @@ import static me.pintoadmin.velocityServerDialog.Text.*;
 
 public final class ServerDialogFactory {
     private static final ResourceLocation SELECT = new ResourceLocation(SelectionManager.NAMESPACE, "select");
+    private static final ResourceLocation GROUP = new ResourceLocation(SelectionManager.NAMESPACE, "group");
     private static final ResourceLocation PASSWD = new ResourceLocation(SelectionManager.NAMESPACE, "passwd");
     private static final ResourceLocation LOCKED = new ResourceLocation(SelectionManager.NAMESPACE, "locked");
     private static final ResourceLocation MAINTENANCE = new ResourceLocation(SelectionManager.NAMESPACE, "maintenance");
@@ -38,15 +39,37 @@ public final class ServerDialogFactory {
      * @param clientType the client brand of the player in question
      * @return the built MultiActionDialog
      */
-    public static Dialog build(SelectionManager manager, ConfigLoader cfg, List<RegisteredServer> servers, Map<String, Boolean> online, Player player, String clientType) {
+    public static Dialog build(SelectionManager manager,
+                               ConfigLoader cfg,
+                               List<String> groups,
+                               List<RegisteredServer> servers,
+                               Map<String, Boolean> online,
+                               Player player, String clientType) {
         List<ActionButton> buttons = new ArrayList<>();
+        try {
+            cfg = cfg.reload();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (String id : groups) {
+            ConfigLoader.Group group = cfg.group(id);
+
+            Component label = mm(group.name());
+            Component tooltip = group.hover().isEmpty() ? null : mm(group.hover());
+
+            NBTCompound payload = new NBTCompound();
+            payload.setTag("group", new NBTString(id));
+
+            CommonButtonData data = new CommonButtonData(label, tooltip, 200);
+            DynamicCustomAction groupAction = new DynamicCustomAction(GROUP, payload);
+
+            ActionButton button = new ActionButton(data, groupAction);
+//            String showPerm = group.showPermString();
+//            if(showPerm.isEmpty() || player.hasPermission(showPerm))
+            buttons.add(button);
+        }
         for (RegisteredServer server : servers) {
             String name = server.getServerInfo().getName();
-            try {
-                cfg = cfg.reload();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             ConfigLoader.Entry entry = cfg.entry(name); // falls back to name/""
             boolean up = online.getOrDefault(name, false);
 

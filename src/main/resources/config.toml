@@ -15,6 +15,11 @@ title = "<gold><bold>Choose a server"
 body  = "<gray>Pick where you want to play.\n<dark_gray>You'll be sent to the default server in 15 seconds."
 kick-quit-message = "<gray>Goodbye!"
 
+[[group]]
+id = "smp"
+name = "<green>S<yellow>M<gold>P"
+hover = "<gold>SMP Servers"
+
 # Leave empty to list every server registered in velocity.toml
 [[server]]
 velocity = "lobby"           # name in velocity.toml
@@ -25,6 +30,7 @@ maintenance = false
 
 [[server]]
 velocity = "survival"
+group = "smp"
 display = "<aqua>Survival"
 description = "<gray>Vanilla survival"
 type = "vanilla"
@@ -32,6 +38,7 @@ permission = "server.survival"
 
 [[server]]
 velocity = "modded"
+group = "smp"
 display = "<gold>Modded Survival"
 description = "<gray>Modded survival"
 type = "fabric"

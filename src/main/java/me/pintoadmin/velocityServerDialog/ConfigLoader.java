@@ -11,14 +11,21 @@ import java.util.regex.*;
 public record ConfigLoader(
         int timeoutSeconds, boolean kickOnTimeout, boolean kickLegacyClients, int columns,
        String defaultServer, String maintenancePerm, boolean savePasswords, String title, String body,
-       String kickQuit, List<Entry> servers){
+       String kickQuit, List<Group> groups, List<Entry> servers){
     private static Path dataDir = Path.of("");
 
-    public record Entry(String velocity, String display, String description, String type, String permString, String showPermString, String pwString, boolean maintenance) {}
+    public record Entry(String velocity, String group, String display, String description, String type, String permString, String showPermString, String pwString, boolean maintenance) {}
 
     public Entry entry(String velocityName) {
         return servers.stream().filter(e -> e.velocity().equalsIgnoreCase(velocityName)).findFirst()
-                .orElse(new Entry(velocityName, velocityName, "", "vanilla", "", "", "", false));
+                .orElse(new Entry(velocityName, "", velocityName, "", "vanilla", "", "", "", false));
+    }
+
+    public record Group(String id, String name, String hover) {}
+
+    public Group group(String id) {
+        return groups.stream().filter(g -> g.id.equalsIgnoreCase(id)).findFirst()
+                .orElse(new Group(id, id, ""));
     }
 
     public static ConfigLoader load(Path dataDir) throws IOException {
@@ -34,6 +41,7 @@ public record ConfigLoader(
         List<Entry> servers = new ArrayList<>();
         for (Toml t : toml.getTables("server")){
             String velocityName = t.getString("velocity");
+            String group = t.getString("group");
             String display = t.getString("display");
             String description = t.getString("description");
             String type = t.getString("type");
@@ -42,7 +50,15 @@ public record ConfigLoader(
             String pass = t.getString("password", "");
             boolean maintenance = t.getBoolean("maintenance", false);
 
-            servers.add(new Entry(velocityName, display, description, type, perm, showPerm, pass, maintenance));
+            servers.add(new Entry(velocityName, group, display, description, type, perm, showPerm, pass, maintenance));
+        }
+        List<Group> groups = new ArrayList<>();
+        for (Toml t : toml.getTables("group")){
+            String id = t.getString("id");
+            String name = t.getString("name");
+            String hover = t.getString("hover");
+
+            groups.add(new Group(id, name, hover));
         }
         int timeout = Math.clamp(toml.getLong("timeout-seconds", 15L), 2, 25);
         return new ConfigLoader(
@@ -55,7 +71,7 @@ public record ConfigLoader(
                 toml.getBoolean("save-passwords", false),
                 toml.getString("title"), toml.getString("body"),
                 toml.getString("kick-quit-message", "<gray>Goodbye!"),
-                servers);
+                groups, servers);
     }
 
     public ConfigLoader reload() throws IOException {

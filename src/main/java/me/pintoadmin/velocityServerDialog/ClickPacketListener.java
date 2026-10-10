@@ -51,6 +51,12 @@ public final class ClickPacketListener implements PacketListener {
                         if (server != null) manager.select(uuid, server);
                     }
                 }
+                case "group" -> {
+                    if (packet.getPayload() instanceof NBTCompound tag) {
+                        String group = tag.getStringTagValueOrNull("group");
+                        if (group != null) manager.group(uuid, group);
+                    }
+                }
                 case "locked" -> {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");

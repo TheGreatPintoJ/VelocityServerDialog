@@ -11,6 +11,7 @@ import com.velocitypowered.api.proxy.*;
 import com.velocitypowered.api.proxy.server.*;
 import com.velocitypowered.api.scheduler.*;
 import net.kyori.adventure.text.*;
+import net.kyori.adventure.text.event.ClickEvent;
 import org.slf4j.*;
 
 import java.io.*;
@@ -87,13 +88,58 @@ public final class SelectionManager {
                 .toList();
     }
 
+    public List<RegisteredServer> getGroupServers(String group){
+        if (config.servers().isEmpty()) return List.of();
+        return config.servers().stream()
+                .filter(e -> e.group() != null && e.group().equalsIgnoreCase(group))
+                .map(e -> proxy.getServer(e.velocity()))
+                .flatMap(Optional::stream)
+                .toList();
+    }
+
+    public List<RegisteredServer> getNonGroupServers(){
+        if (config.servers().isEmpty()) return List.of();
+        return config.servers().stream()
+                .filter(e -> e.group() == null)
+                .map(e -> proxy.getServer(e.velocity()))
+                .flatMap(Optional::stream)
+                .toList();
+    }
+
+    public List<String> listedGroups(){
+        if (config.groups().isEmpty()) return List.of();
+        return config.groups().stream()
+                .map(ConfigLoader.Group::id)
+                .toList();
+    }
+
+    public Map<String, Boolean> getOnlineServers() {
+        System.out.println("Called getOnline");
+
+        Map<String, Boolean> online = new ConcurrentHashMap<>();
+        CompletableFuture<?>[] pings = listedServers().stream()
+                .map(s -> s.ping()
+                        .orTimeout(1500, TimeUnit.MILLISECONDS)
+                        .handle((ping, err) -> online.put(s.getServerInfo().getName(), err == null)))
+                .toArray(CompletableFuture[]::new);
+        try {
+            CompletableFuture.allOf(pings).get(1500, TimeUnit.MILLISECONDS);
+            return online;
+        } catch (InterruptedException | ExecutionException | TimeoutException e){
+            Map<String, Boolean> offlineList = new HashMap<>();
+            listedServers().stream()
+                    .map(s -> s.getServerInfo().getName())
+                    .forEach(s -> offlineList.put(s, false));
+            return offlineList;
+        }
+    }
+
     /**
      * Begin the server picker dialog
      * @param event the PlayerChooseInitialServerEvent to interact with
      * @param cont the Continuation of the proxy's placement task
-     * @param online the Map of servers to online state
      */
-    public void begin(PlayerChooseInitialServerEvent event, Continuation cont, Map<String, Boolean> online) {
+    public void begin(PlayerChooseInitialServerEvent event, Continuation cont) {
         Player player = event.getPlayer();
         if (!player.isActive() && cont != null) { cont.resume(); return; }
 
@@ -114,6 +160,7 @@ public final class SelectionManager {
         ScheduledTask task = proxy.getScheduler().buildTask(plugin, () -> {}).schedule(); // if postjoin, empty task instead (no dialog timeout)
         if(!playersPostjoin.get(player)) task = taskBuilder.schedule(); // If not postjoin, schedule dialog timeout
 
+        Map<String, Boolean> online = getOnlineServers();
         Set<String> up = online.entrySet().stream()
                 .filter(Map.Entry::getValue).map(Map.Entry::getKey)
                 .collect(Collectors.toUnmodifiableSet());
@@ -136,7 +183,7 @@ public final class SelectionManager {
             passwdPendings.put(velocity, pwP);
         }
 
-        Dialog dialog = ServerDialogFactory.build(this, config, listedServers(), online, player, brand);
+        Dialog dialog = ServerDialogFactory.build(this, config, listedGroups(), getNonGroupServers(), online, player, brand);
         Pending p = new Pending(event, cont, task, up, dialog);
         pending.put(player.getUniqueId(), p);
         resend(p);
@@ -147,15 +194,8 @@ public final class SelectionManager {
      * @param source the CommandSource to send the dialog to
      */
     public void sendServersDialog(CommandSource source){
-        Map<String, Boolean> online = new ConcurrentHashMap<>();
-        CompletableFuture<?>[] pings = listedServers().stream()
-                .map(s -> s.ping()
-                        .orTimeout(1500, TimeUnit.MILLISECONDS)
-                        .handle((ping, err) -> online.put(s.getServerInfo().getName(), err == null)))
-                .toArray(CompletableFuture[]::new);
         Player p = (Player) source;
-        CompletableFuture.allOf(pings).whenComplete((v, err) ->
-                begin(new PlayerChooseInitialServerEvent(p, null), null, online));
+        begin(new PlayerChooseInitialServerEvent(p, null), null);
     }
 
     /**
@@ -190,6 +230,20 @@ public final class SelectionManager {
 
         playersPostjoin.put(p.event.getPlayer(), true);
         if(p.continuation() != null) p.continuation().resume();
+    }
+
+    public void group(UUID uuid, String group){
+        Optional<Player> player = proxy.getPlayer(uuid);
+        if(player.isEmpty()) return;
+
+        List<RegisteredServer> groupServers = getGroupServers(group);
+
+        clearDialog(player.get());
+        showDialog(player.get(),
+                ServerDialogFactory.build(this, config,
+                        List.of(), groupServers,
+                        getOnlineServers(), player.get(),
+                        player.get().getClientBrand().split(":")[0]));
     }
 
     /**

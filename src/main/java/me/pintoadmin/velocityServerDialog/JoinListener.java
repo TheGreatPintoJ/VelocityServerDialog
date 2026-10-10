@@ -40,20 +40,7 @@ public final class JoinListener {
         manager.playersPostjoin.put(player, false);
 
         // Feature 1: suspend the event; Velocity won't connect until resume()
-        return EventTask.withContinuation(continuation -> {
-            List<RegisteredServer> servers = manager.listedServers();
-
-            // Feature 3: ping all servers in parallel, capped at 1.5s
-            Map<String, Boolean> online = new ConcurrentHashMap<>();
-            CompletableFuture<?>[] pings = servers.stream()
-                    .map(s -> s.ping()
-                            .orTimeout(1500, TimeUnit.MILLISECONDS)
-                            .handle((ping, err) -> online.put(s.getServerInfo().getName(), err == null)))
-                    .toArray(CompletableFuture[]::new);
-
-            CompletableFuture.allOf(pings).whenComplete((v, err) ->
-                    manager.begin(event, continuation, online));
-        });
+        return EventTask.withContinuation(continuation -> manager.begin(event, continuation));
     }
 
     // Feature 7: player closed the game while choosing
