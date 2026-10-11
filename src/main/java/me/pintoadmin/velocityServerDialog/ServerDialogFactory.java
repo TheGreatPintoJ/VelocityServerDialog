@@ -24,6 +24,7 @@ public final class ServerDialogFactory {
     private static final ResourceLocation MAINTENANCE = new ResourceLocation(SelectionManager.NAMESPACE, "maintenance");
     private static final ResourceLocation QUIT = new ResourceLocation(SelectionManager.NAMESPACE, "quit");
     private static final ResourceLocation CLOSE = new ResourceLocation(SelectionManager.NAMESPACE, "close");
+    private static final ResourceLocation BACK = new ResourceLocation(SelectionManager.NAMESPACE, "back");
 
     private ServerDialogFactory() {
     }
@@ -122,8 +123,8 @@ public final class ServerDialogFactory {
         }
 
         ActionButton quit = new ActionButton(
-                new CommonButtonData(Component.text(manager.playersPostjoin.get(player) ? "Close" : "Disconnect", NamedTextColor.RED), null, 200),
-                new DynamicCustomAction(manager.playersPostjoin.get(player) ? CLOSE : QUIT, new NBTCompound()));
+                new CommonButtonData(Component.text(cfg.groups().isEmpty() || !groups.isEmpty() ? manager.playersPostjoin.get(player) ? "Close" : "Disconnect" : "Back", NamedTextColor.RED), null, 200),
+                new DynamicCustomAction(cfg.groups().isEmpty() || !groups.isEmpty() ? manager.playersPostjoin.get(player) ? CLOSE : QUIT : BACK, new NBTCompound()));
 
         CommonDialogData common = new CommonDialogData(
                 mm(cfg.title()), null,

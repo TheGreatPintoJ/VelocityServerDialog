@@ -33,6 +33,7 @@ public final class SelectionManager {
      * @param player the player to clear from
      */
     public void clearDialog(Player player) {
+        if(!playersPostjoin.containsKey(player)) return;
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
     }
@@ -44,6 +45,7 @@ public final class SelectionManager {
      * @param dialog the dialog to send to the player
      */
     public void showDialog(Player player, Dialog dialog) {
+        if(!playersPostjoin.containsKey(player)) return;
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerShowDialog(dialog) : new WrapperConfigServerShowDialog(dialog));
     }
@@ -129,7 +131,7 @@ public final class SelectionManager {
             return;
         }
 
-        // Feature 5: on timeout, close the dialog and fall back to Velocity's "try" list
+        // on timeout, close the dialog and fall back to Velocity's "try" list
         Scheduler.TaskBuilder taskBuilder = proxy.getScheduler().buildTask(plugin, () -> {
             clearDialog(event.getPlayer());
             Optional<RegisteredServer> defaultServer = listedServers().stream()

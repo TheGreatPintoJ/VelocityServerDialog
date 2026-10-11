@@ -26,7 +26,7 @@ public final class JoinListener {
     public EventTask onChooseInitial(PlayerChooseInitialServerEvent event) {
         Player player = event.getPlayer();
 
-        // Feature 6: no dialog support before 1.21.6
+        // no dialog support before 1.21.6
         if (player.getProtocolVersion().lessThan(ProtocolVersion.MINECRAFT_1_21_6)) {
             if (config.kickLegacyClients()) player.disconnect(mm(config.kickQuit()));
             return null; // leave Velocity's default choice untouched
@@ -34,7 +34,7 @@ public final class JoinListener {
 
         manager.playersPostjoin.put(player, false);
 
-        // Feature 1: suspend the event; Velocity won't connect until resume()
+        // suspend the event; Velocity won't connect until resume()
         return EventTask.withContinuation(continuation -> manager.begin(event, continuation));
     }
 
@@ -56,7 +56,7 @@ public final class JoinListener {
         manager.playersPostjoin.put(event.getPlayer(), true);
     }
 
-    // Feature 7: player closed the game while choosing
+    // player closed the game while choosing
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         manager.playersPostjoin.remove(event.getPlayer());
