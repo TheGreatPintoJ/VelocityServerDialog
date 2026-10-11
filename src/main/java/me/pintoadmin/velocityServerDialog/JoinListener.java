@@ -59,7 +59,6 @@ public final class JoinListener {
     // Feature 7: player closed the game while choosing
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
-        manager.abandon(event.getPlayer().getUniqueId());
         manager.playersPostjoin.remove(event.getPlayer());
     }
 }

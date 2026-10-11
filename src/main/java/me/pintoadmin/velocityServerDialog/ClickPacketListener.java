@@ -36,32 +36,35 @@ public final class ClickPacketListener implements PacketListener {
             event.setCancelled(true); // Velocity never sees it (it would drop it anyway with no backend)
             UUID uuid = event.getUser().getUUID();
             if (uuid == null) return;
+            Optional<Player> playerOpt = proxy.getPlayer(uuid);
+            if(playerOpt.isEmpty()) return;
+            Player player = playerOpt.get();
 
             switch (id.getKey()) {
                 case "select" -> {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");
-                        if (server != null) manager.select(uuid, server);
+                        if (server != null) manager.select(player, server);
                     }
                 }
                 case "group" -> {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String group = tag.getStringTagValueOrNull("group");
-                        if (group != null) manager.group(uuid, group);
+                        if (group != null) manager.group(player, group);
                     }
                 }
                 case "locked" -> {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");
                         if (server != null)
-                            manager.custom(uuid, NoticeDialogFactory.build("<red>The " + server + " server is locked"));
+                            manager.custom(player, NoticeDialogFactory.build("<red>The " + server + " server is locked"));
                     }
                 }
                 case "maintenance" -> {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");
                         if (server != null)
-                            manager.custom(uuid, NoticeDialogFactory.build("<dark_purple>The " + server + " server is under maintenance"));
+                            manager.custom(player, NoticeDialogFactory.build("<dark_purple>The " + server + " server is under maintenance"));
                     }
                 }
                 case "passwd" -> {
@@ -69,12 +72,12 @@ public final class ClickPacketListener implements PacketListener {
                         String server = tag.getStringTagValueOrNull("server");
                         if (server != null)
                             try {
-                                String savedPasswd = dbManager.getSavedPassword(uuid, server);
+                                String savedPasswd = dbManager.getSavedPassword(player.getUniqueId(), server);
                                 if (config.savePasswords() && savedPasswd != null && manager.checkPasswd(server, savedPasswd)) {
-                                    manager.select(uuid, server);
+                                    manager.select(player, server);
                                 } else throw new SQLException();
                             } catch (SQLException e) {
-                                manager.passwd(uuid, server);
+                                manager.passwd(player, server);
                             }
                     }
                 }
@@ -86,17 +89,17 @@ public final class ClickPacketListener implements PacketListener {
                         if (manager.checkPasswd(server, passwd)) {
                             try {
                                 if (config.savePasswords())
-                                    dbManager.addSavedPassword(uuid, server, passwd);
+                                    dbManager.addSavedPassword(player.getUniqueId(), server, passwd);
                             } catch (SQLException e) {
                                 e.printStackTrace();
                             }
-                            manager.select(uuid, server);
-                        } else manager.custom(uuid, NoticeDialogFactory.build("<red>Wrong password!"));
+                            manager.select(player, server);
+                        } else manager.custom(player, NoticeDialogFactory.build("<red>Wrong password!"));
                     }
                 }
-                case "back" -> manager.back(uuid);
-                case "close" -> manager.close(uuid);
-                case "quit" -> manager.quit(uuid);
+                case "back" -> manager.back(player);
+                case "close" -> manager.close(player);
+                case "quit" -> manager.quit(player);
                 default -> {
                 }
             }
