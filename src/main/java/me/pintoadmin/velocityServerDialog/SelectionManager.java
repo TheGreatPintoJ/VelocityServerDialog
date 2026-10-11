@@ -133,12 +133,12 @@ public final class SelectionManager {
 
         // on timeout, close the dialog and fall back to Velocity's "try" list
         Scheduler.TaskBuilder taskBuilder = proxy.getScheduler().buildTask(plugin, () -> {
-            clearDialog(event.getPlayer());
+            clearDialog(player);
             Optional<RegisteredServer> defaultServer = listedServers().stream()
                     .filter(s -> s.getServerInfo().getName().equalsIgnoreCase(config.defaultServer()))
                     .findFirst();
             defaultServer.ifPresent(event::setInitialServer); // Set destination to default-server if it exists
-            if (config.kickOnTimeout()) event.getPlayer().disconnect(mm("<red>You timed out! Select a server."));
+            if (config.kickOnTimeout()) player.disconnect(mm("<red>You timed out! Select a server."));
             else if (cont != null) cont.resume();                            // resume velocity server placement
         }).delay(config.timeoutSeconds(), TimeUnit.SECONDS);
 
