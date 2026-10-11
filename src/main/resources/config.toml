@@ -13,6 +13,7 @@ save-passwords = true # save passwords to a sqlite database. one-time password e
 
 title = "<gold><bold>Choose a server"
 body  = "<gray>Pick where you want to play.\n<dark_gray>You'll be sent to the default server in 15 seconds."
+post-join-body = "<gray>Pick where you want to play." # The body message in the dialog when shown from command
 kick-quit-message = "<gray>Goodbye!"
 
 [[group]]

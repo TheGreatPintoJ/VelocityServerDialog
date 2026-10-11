@@ -9,7 +9,7 @@ import java.util.regex.*;
 
 public record ConfigLoader(
         int timeoutSeconds, boolean kickOnTimeout, boolean kickLegacyClients, int columns,
-        String defaultServer, String maintenancePerm, boolean savePasswords, String title, String body,
+        String defaultServer, String maintenancePerm, boolean savePasswords, String title, String body, String postJoinBody,
         String kickQuit, List<Group> groups, List<Entry> servers) {
     private static Path dataDir = Path.of("");
 
@@ -71,7 +71,7 @@ public record ConfigLoader(
                 toml.getString("default-server", ""),
                 toml.getString("maintenance-perm", ""),
                 toml.getBoolean("save-passwords", false),
-                toml.getString("title"), toml.getString("body"),
+                toml.getString("title"), toml.getString("body"), toml.getString("post-join-body"),
                 toml.getString("kick-quit-message", "<gray>Goodbye!"),
                 groups, servers);
     }

@@ -131,7 +131,7 @@ public final class ServerDialogFactory {
                 /* canCloseWithEscape */ manager.playersPostjoin.get(player),
                 /* pause */ false,
                 DialogAction.CLOSE,
-                List.of(new PlainMessageDialogBody(new PlainMessage(mm(cfg.body()), 300))),
+                List.of(new PlainMessageDialogBody(new PlainMessage(mm(manager.playersPostjoin.get(player) ? cfg.postJoinBody() : cfg.body()), 300))),
                 List.of());
 
         return new MultiActionDialog(common, buttons, quit, cfg.columns());
