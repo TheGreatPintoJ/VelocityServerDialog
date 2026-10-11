@@ -54,7 +54,7 @@ public class MaintenanceCommand implements SimpleCommand {
     public CompletableFuture<List<String>> suggestAsync(Invocation invocation) {
         String[] args = invocation.arguments();
 
-        if(!invocation.source().hasPermission("velocityserversdialog.serversdialog.maintenance"))
+        if(!invocation.source().hasPermission("velocityserverdialog.serversdialog.maintenance"))
             return CompletableFuture.completedFuture(List.of());
 
         if (args.length <= 1) {

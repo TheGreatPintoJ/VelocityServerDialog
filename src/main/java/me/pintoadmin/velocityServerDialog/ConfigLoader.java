@@ -54,9 +54,9 @@ public record ConfigLoader(
         }
         List<Group> groups = new ArrayList<>();
         for (Toml t : toml.getTables("group")){
-            String id = t.getString("id");
-            String name = t.getString("name");
-            String hover = t.getString("hover");
+            String id = t.getString("id", "");
+            String name = t.getString("name", id);
+            String hover = t.getString("hover", "");
 
             groups.add(new Group(id, name, hover));
         }

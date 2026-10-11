@@ -16,7 +16,7 @@ import static me.pintoadmin.velocityServerDialog.Text.mm;
 
 public final class PasswordDialogFactory {
     private static final ResourceLocation PASSWD_SUBMIT = new ResourceLocation(SelectionManager.NAMESPACE, "passwd_submit");
-    private static final ResourceLocation BACK_PW = new ResourceLocation(SelectionManager.NAMESPACE, "back_pw");
+    private static final ResourceLocation BACK = new ResourceLocation(SelectionManager.NAMESPACE, "back");
 
     private PasswordDialogFactory() {}
 
@@ -50,7 +50,7 @@ public final class PasswordDialogFactory {
 
         ActionButton back = new ActionButton(
                 new CommonButtonData(Component.text("Back", NamedTextColor.RED), null, 200),
-                new DynamicCustomAction(BACK_PW, new NBTCompound()));
+                new DynamicCustomAction(BACK, new NBTCompound()));
 
         CommonDialogData common = new CommonDialogData(
                 mm(cfg.title()), null,

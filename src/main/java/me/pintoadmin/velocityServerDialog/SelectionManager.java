@@ -120,16 +120,9 @@ public final class SelectionManager {
                         .orTimeout(1500, TimeUnit.MILLISECONDS)
                         .handle((ping, err) -> online.put(s.getServerInfo().getName(), err == null)))
                 .toArray(CompletableFuture[]::new);
-        try {
-            CompletableFuture.allOf(pings).get(1500, TimeUnit.MILLISECONDS);
-            return online;
-        } catch (InterruptedException | ExecutionException | TimeoutException e){
-            Map<String, Boolean> offlineList = new HashMap<>();
-            listedServers().stream()
-                    .map(s -> s.getServerInfo().getName())
-                    .forEach(s -> offlineList.put(s, false));
-            return offlineList;
-        }
+
+        CompletableFuture.allOf(pings).join();
+        return online;
     }
 
     /**
@@ -189,7 +182,7 @@ public final class SelectionManager {
      * @param source the CommandSource to send the dialog to
      */
     public void sendServersDialog(CommandSource source){
-        Player p = (Player) source;
+        if(!(source instanceof Player p)) return;
         begin(new PlayerChooseInitialServerEvent(p, null), null);
     }
 
