@@ -20,7 +20,9 @@ public class DBManager {
         this.proxy = proxy;
         this.logger = logger;
         this.dataDir = dataDir;
+    }
 
+    public void init(){
         try {
             Path dbPath = dataDir.resolve("auth.db");
             Class.forName("org.sqlite.JDBC");
@@ -83,6 +85,14 @@ public class DBManager {
             ps.setString(2, server);
             ps.setString(3, password);
             ps.executeUpdate();
+        }
+    }
+
+    public void close(){
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            logger.error("Could not close database connection: "+e.getMessage());
         }
     }
 }

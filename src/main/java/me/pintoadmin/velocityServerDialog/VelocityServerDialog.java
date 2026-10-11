@@ -4,7 +4,7 @@ import com.github.retrooper.packetevents.*;
 import com.github.retrooper.packetevents.event.*;
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.*;
-import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.*;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.*;
@@ -32,6 +32,8 @@ public class VelocityServerDialog {
         this.logger = logger;
     }
 
+    private DBManager dbManager;
+
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) throws IOException {
         PacketEvents.setAPI(VelocityPacketEventsBuilder.build(proxy, container, logger, dataDir));
@@ -43,7 +45,8 @@ public class VelocityServerDialog {
 
         ConfigLoader configLoader = ConfigLoader.load(dataDir);
         SelectionManager manager = new SelectionManager(this, proxy, configLoader, logger);
-        DBManager dbManager = new DBManager(proxy, logger, dataDir);
+        dbManager = new DBManager(proxy, logger, dataDir);
+        dbManager.init();
 
         proxy.getEventManager().register(this, new JoinListener(proxy, configLoader, manager));
         PacketEvents.getAPI().getEventManager()
@@ -54,5 +57,11 @@ public class VelocityServerDialog {
         proxy.getCommandManager().register(
                 proxy.getCommandManager().metaBuilder("serversdialog").build(),
                 command);
+    }
+
+    @Subscribe
+    public void onProxyShutdownEvent(ProxyShutdownEvent event){
+        PacketEvents.getAPI().terminate();
+        dbManager.close();
     }
 }
