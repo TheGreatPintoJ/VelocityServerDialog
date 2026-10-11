@@ -7,7 +7,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.velocitypowered.api.command.*;
 import com.velocitypowered.api.event.*;
 import com.velocitypowered.api.event.player.*;
-import com.velocitypowered.api.event.proxy.*;
 import com.velocitypowered.api.proxy.*;
 import com.velocitypowered.api.proxy.server.*;
 import com.velocitypowered.api.scheduler.*;
@@ -16,7 +15,6 @@ import org.slf4j.*;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.*;
 
 import static me.pintoadmin.velocityServerDialog.Text.*;
 
@@ -33,7 +31,7 @@ public final class SelectionManager {
      * @param player the player to clear from
      */
     public void clearDialog(Player player) {
-        if(!playersPostjoin.containsKey(player)) return;
+        if (!playersPostjoin.containsKey(player)) return;
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
     }
@@ -45,7 +43,7 @@ public final class SelectionManager {
      * @param dialog the dialog to send to the player
      */
     public void showDialog(Player player, Dialog dialog) {
-        if(!playersPostjoin.containsKey(player)) return;
+        if (!playersPostjoin.containsKey(player)) return;
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerShowDialog(dialog) : new WrapperConfigServerShowDialog(dialog));
     }
@@ -142,7 +140,8 @@ public final class SelectionManager {
             else if (cont != null) cont.resume();                            // resume velocity server placement
         }).delay(config.timeoutSeconds(), TimeUnit.SECONDS);
 
-        ScheduledTask task = proxy.getScheduler().buildTask(plugin, () -> {}).schedule(); // if postjoin, empty task instead (no dialog timeout)
+        ScheduledTask task = proxy.getScheduler().buildTask(plugin, () -> {
+        }).schedule(); // if postjoin, empty task instead (no dialog timeout)
         if (!playersPostjoin.get(player)) task = taskBuilder.schedule(); // If not postjoin, schedule dialog timeout
 
         Map<String, Boolean> online = getOnlineServers();
@@ -155,7 +154,7 @@ public final class SelectionManager {
 
         playerInitialEvents.put(player, event);
         timeoutTasks.put(player, task);
-        if(cont != null) eventContinuations.put(player, cont);
+        if (cont != null) eventContinuations.put(player, cont);
     }
 
     /**
@@ -171,17 +170,17 @@ public final class SelectionManager {
     /**
      * Signifies a selection click
      *
-     * @param player   the player who clicked
+     * @param player     the player who clicked
      * @param serverName the name of the server the player clicked on
      */
     public void select(Player player, String serverName) {
         Optional<RegisteredServer> target = listedServers().stream()
                 .filter(s -> s.getServerInfo().getName().equalsIgnoreCase(serverName))
                 .findFirst();
-        if(target.isEmpty()) return;
+        if (target.isEmpty()) return;
 
         ScheduledTask task = timeoutTasks.remove(player);
-        if(task != null) task.cancel();
+        if (task != null) task.cancel();
 
         clearDialog(player);
         showDialog(player, WaitingDialogFactory.build(serverName));
@@ -201,7 +200,7 @@ public final class SelectionManager {
             event.setInitialServer(target.get());
         }
         Continuation cont = eventContinuations.remove(player);
-        if(cont != null) cont.resume();
+        if (cont != null) cont.resume();
     }
 
     public void group(Player player, String group) {
@@ -221,7 +220,7 @@ public final class SelectionManager {
     /**
      * Signifies a click on a password-protected server
      *
-     * @param player the player who clicked
+     * @param player     the player who clicked
      * @param serverName the name of the server the player clicked on
      */
     public void passwd(Player player, String serverName) {
@@ -270,10 +269,10 @@ public final class SelectionManager {
         clearDialog(player);
 
         ScheduledTask task = timeoutTasks.remove(player);
-        if(task != null) task.cancel();
+        if (task != null) task.cancel();
         player.disconnect(mm(config.kickQuit()));
         Continuation cont = eventContinuations.remove(player);
-        if(cont != null) cont.resume();
+        if (cont != null) cont.resume();
     }
 
     /**
@@ -285,9 +284,9 @@ public final class SelectionManager {
         clearDialog(player);
 
         ScheduledTask task = timeoutTasks.remove(player);
-        if(task != null) task.cancel();
+        if (task != null) task.cancel();
         Continuation cont = eventContinuations.remove(player);
-        if(cont != null) cont.resume();
+        if (cont != null) cont.resume();
     }
 
     /**
@@ -297,8 +296,8 @@ public final class SelectionManager {
      */
     public void abandon(Player player) {
         ScheduledTask task = timeoutTasks.remove(player);
-        if(task != null) task.cancel();
+        if (task != null) task.cancel();
         Continuation cont = eventContinuations.remove(player);
-        if(cont != null) cont.resume();
+        if (cont != null) cont.resume();
     }
 }

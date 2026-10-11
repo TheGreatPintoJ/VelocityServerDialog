@@ -37,7 +37,7 @@ public final class ClickPacketListener implements PacketListener {
             UUID uuid = event.getUser().getUUID();
             if (uuid == null) return;
             Optional<Player> playerOpt = proxy.getPlayer(uuid);
-            if(playerOpt.isEmpty()) return;
+            if (playerOpt.isEmpty()) return;
             Player player = playerOpt.get();
 
             switch (id.getKey()) {

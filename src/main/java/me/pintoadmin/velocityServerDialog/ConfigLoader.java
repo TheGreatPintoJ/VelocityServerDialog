@@ -9,7 +9,8 @@ import java.util.regex.*;
 
 public record ConfigLoader(
         int timeoutSeconds, boolean kickOnTimeout, boolean kickLegacyClients, int columns,
-        String defaultServer, String maintenancePerm, boolean savePasswords, String title, String body, String postJoinBody,
+        String defaultServer, String maintenancePerm, boolean savePasswords, String title, String body,
+        String postJoinBody,
         String kickQuit, List<Group> groups, List<Entry> servers) {
     private static Path dataDir = Path.of("");
 
