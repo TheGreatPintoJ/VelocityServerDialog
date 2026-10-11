@@ -40,6 +40,9 @@ public final class JoinListener {
 
     @Subscribe
     public void onInitialServerFailure(KickedFromServerEvent event) {
+        if (event.getPlayer().getProtocolVersion().lessThan(ProtocolVersion.MINECRAFT_1_21_6))
+            return; // skip legacy clients
+
         if (!manager.playersPostjoin.get(event.getPlayer())) return;
 
         Optional<Component> reasonOpt = event.getServerKickReason();
@@ -59,6 +62,7 @@ public final class JoinListener {
     // player closed the game while choosing
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
+        manager.abandon(event.getPlayer());
         manager.playersPostjoin.remove(event.getPlayer());
     }
 }

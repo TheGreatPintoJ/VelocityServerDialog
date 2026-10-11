@@ -1,6 +1,7 @@
 package me.pintoadmin.velocityServerDialog;
 
 import com.velocitypowered.api.command.*;
+import com.velocitypowered.api.proxy.*;
 import org.slf4j.*;
 
 import java.io.*;
@@ -11,12 +12,14 @@ import java.util.concurrent.*;
 import static me.pintoadmin.velocityServerDialog.Text.*;
 
 public class MaintenanceCommand implements SimpleCommand {
+    private final ProxyServer proxy;
     private final ConfigLoader configLoader;
     private final SelectionManager manager;
     private final Path dataDir;
     private final Logger logger;
 
-    public MaintenanceCommand(ConfigLoader configLoader, SelectionManager manager, Path dataDir, Logger logger) {
+    public MaintenanceCommand(ProxyServer proxy, ConfigLoader configLoader, SelectionManager manager, Path dataDir, Logger logger) {
+        this.proxy = proxy;
         this.configLoader = configLoader;
         this.manager = manager;
         this.dataDir = dataDir;
@@ -37,6 +40,10 @@ public class MaintenanceCommand implements SimpleCommand {
                 source.sendMessage(mm("<red>Usage: /serversdialog <server> <maintenance: true|false>"));
             else {
                 String server = args[0];
+                if (proxy.getServer(server).isEmpty()) {
+                    source.sendMessage(mm("<red>Invalid server"));
+                    return;
+                }
                 boolean enabled = Boolean.parseBoolean(args[1]);
                 try {
                     configLoader.setMaintenance(dataDir, server, enabled);

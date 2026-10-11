@@ -22,6 +22,7 @@ java {
 
 tasks {
     jar {
+        enabled = false
     }
 
     shadowJar {

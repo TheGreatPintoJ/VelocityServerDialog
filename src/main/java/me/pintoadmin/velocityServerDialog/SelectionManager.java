@@ -20,10 +20,10 @@ import static me.pintoadmin.velocityServerDialog.Text.*;
 
 public final class SelectionManager {
     public static final String NAMESPACE = "velocityserverdialog";
-    public final Map<Player, Boolean> playersPostjoin = new HashMap<>();
-    private final Map<Player, PlayerChooseInitialServerEvent> playerInitialEvents = new HashMap<>();
-    private final Map<Player, Continuation> eventContinuations = new HashMap<>();
-    private final Map<Player, ScheduledTask> timeoutTasks = new HashMap<>();
+    public final Map<Player, Boolean> playersPostjoin = new ConcurrentHashMap<>();
+    private final Map<Player, PlayerChooseInitialServerEvent> playerInitialEvents = new ConcurrentHashMap<>();
+    private final Map<Player, Continuation> eventContinuations = new ConcurrentHashMap<>();
+    private final Map<Player, ScheduledTask> timeoutTasks = new ConcurrentHashMap<>();
 
     /**
      * Clear the dialog from the player - correct for player state (playing/config)
@@ -91,7 +91,7 @@ public final class SelectionManager {
     public List<RegisteredServer> getNonGroupServers() {
         if (config.servers().isEmpty()) return List.of();
         return config.servers().stream()
-                .filter(e -> e.group() == null)
+                .filter(e -> e.group() == null || e.group().isBlank())
                 .map(e -> proxy.getServer(e.velocity()))
                 .flatMap(Optional::stream)
                 .toList();
@@ -131,6 +131,8 @@ public final class SelectionManager {
 
         // on timeout, close the dialog and fall back to Velocity's "try" list
         Scheduler.TaskBuilder taskBuilder = proxy.getScheduler().buildTask(plugin, () -> {
+            if (playerInitialEvents.containsKey(player)) playerInitialEvents.remove(player);
+            else return;
             clearDialog(player);
             Optional<RegisteredServer> defaultServer = listedServers().stream()
                     .filter(s -> s.getServerInfo().getName().equalsIgnoreCase(config.defaultServer()))
@@ -144,17 +146,14 @@ public final class SelectionManager {
         }).schedule(); // if postjoin, empty task instead (no dialog timeout)
         if (!playersPostjoin.get(player)) task = taskBuilder.schedule(); // If not postjoin, schedule dialog timeout
 
-        Map<String, Boolean> online = getOnlineServers();
-
         String brand = "";
         if (player.getClientBrand() != null) brand = player.getClientBrand().split(":")[0];
 
-        Dialog dialog = ServerDialogFactory.build(this, config, listedGroups(), getNonGroupServers(), online, player, brand);
-        showDialog(player, dialog);
-
+        Dialog dialog = ServerDialogFactory.build(this, config, listedGroups(), getNonGroupServers(), getOnlineServers(), player, brand);
         playerInitialEvents.put(player, event);
         timeoutTasks.put(player, task);
         if (cont != null) eventContinuations.put(player, cont);
+        showDialog(player, dialog);
     }
 
     /**
