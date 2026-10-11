@@ -14,18 +14,21 @@ import java.util.*;
 import static me.pintoadmin.velocityServerDialog.Text.*;
 
 public final class NoticeDialogFactory {
-    private static final ResourceLocation BACK   = new ResourceLocation(SelectionManager.NAMESPACE, "back");
+    private static final ResourceLocation BACK = new ResourceLocation(SelectionManager.NAMESPACE, "back");
 
-    private NoticeDialogFactory() {}
+    private NoticeDialogFactory() {
+    }
 
     /**
      * A custom notice dialog
+     *
      * @param notice the notice to show the player. MiniMessage supported
      * @return the NoticeDialog built
      */
-    public static Dialog build(String notice){
+    public static Dialog build(String notice) {
         return build(mm(notice));
     }
+
     public static Dialog build(Component notice) {
         ActionButton back = new ActionButton(
                 new CommonButtonData(Component.text("Back", NamedTextColor.RED), null, 200),

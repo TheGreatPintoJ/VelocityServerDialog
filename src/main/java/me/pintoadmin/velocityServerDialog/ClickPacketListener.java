@@ -1,19 +1,12 @@
 package me.pintoadmin.velocityServerDialog;
 
-import com.github.retrooper.packetevents.*;
 import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.protocol.nbt.*;
 import com.github.retrooper.packetevents.protocol.packettype.*;
-import com.github.retrooper.packetevents.protocol.player.*;
-import com.github.retrooper.packetevents.protocol.sound.*;
 import com.github.retrooper.packetevents.resources.*;
-import com.github.retrooper.packetevents.util.*;
 import com.github.retrooper.packetevents.wrapper.configuration.client.*;
-import com.github.retrooper.packetevents.wrapper.play.client.*;
-import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.velocitypowered.api.proxy.*;
 
-import java.awt.*;
 import java.sql.*;
 import java.util.*;
 
@@ -60,13 +53,15 @@ public final class ClickPacketListener implements PacketListener {
                 case "locked" -> {
                     if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");
-                        if (server != null) manager.custom(uuid, NoticeDialogFactory.build("<red>The "+server+" server is locked"));
+                        if (server != null)
+                            manager.custom(uuid, NoticeDialogFactory.build("<red>The " + server + " server is locked"));
                     }
                 }
                 case "maintenance" -> {
-                    if (packet.getPayload() instanceof NBTCompound tag){
+                    if (packet.getPayload() instanceof NBTCompound tag) {
                         String server = tag.getStringTagValueOrNull("server");
-                        if (server != null) manager.custom(uuid, NoticeDialogFactory.build("<dark_purple>The "+server+" server is under maintenance"));
+                        if (server != null)
+                            manager.custom(uuid, NoticeDialogFactory.build("<dark_purple>The " + server + " server is under maintenance"));
                     }
                 }
                 case "passwd" -> {
@@ -75,11 +70,11 @@ public final class ClickPacketListener implements PacketListener {
                         if (server != null)
                             try {
                                 String savedPasswd = dbManager.getSavedPassword(uuid, server);
-                                if(config.savePasswords() && savedPasswd != null && manager.checkPasswd(server, savedPasswd)){
+                                if (config.savePasswords() && savedPasswd != null && manager.checkPasswd(server, savedPasswd)) {
                                     manager.select(uuid, server);
                                 } else throw new SQLException();
                             } catch (SQLException e) {
-                               manager.passwd(uuid, server);
+                                manager.passwd(uuid, server);
                             }
                     }
                 }
@@ -90,7 +85,7 @@ public final class ClickPacketListener implements PacketListener {
 
                         if (manager.checkPasswd(server, passwd)) {
                             try {
-                                if(config.savePasswords())
+                                if (config.savePasswords())
                                     dbManager.addSavedPassword(uuid, server, passwd);
                             } catch (SQLException e) {
                                 e.printStackTrace();

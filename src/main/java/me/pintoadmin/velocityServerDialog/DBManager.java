@@ -3,9 +3,7 @@ package me.pintoadmin.velocityServerDialog;
 import com.velocitypowered.api.proxy.*;
 import org.slf4j.*;
 
-import java.io.*;
 import java.nio.file.*;
-import java.rmi.*;
 import java.sql.*;
 import java.util.*;
 
@@ -22,11 +20,11 @@ public class DBManager {
         this.dataDir = dataDir;
     }
 
-    public void init(){
+    public void init() {
         try {
             Path dbPath = dataDir.resolve("auth.db");
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:"+ dbPath.toAbsolutePath());
+            connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath.toAbsolutePath());
             createTable();
         } catch (ClassNotFoundException e) {
             logger.error("SQLite JDBC driver is missing from the plugin jar", e);
@@ -50,9 +48,10 @@ public class DBManager {
 
     public String getSavedPassword(String playerName, String server) throws SQLException {
         Optional<Player> player = proxy.getPlayer(playerName);
-        if(player.isEmpty()) return null; // No such player
+        if (player.isEmpty()) return null; // No such player
         return getSavedPassword(player.get().getUniqueId(), server);
     }
+
     public String getSavedPassword(UUID uuid, String server) throws SQLException {
         String sql = "SELECT password FROM saved WHERE uuid = ? AND server = ?";
 
@@ -67,6 +66,7 @@ public class DBManager {
         }
         return null; // Not found in DB
     }
+
     public synchronized void addSavedPassword(UUID uuid, String server, String password) throws SQLException {
         String updateSql = "UPDATE saved SET password = ? WHERE uuid = ? AND server = ?";
         try (PreparedStatement ps = connection.prepareStatement(updateSql)) {
@@ -88,11 +88,11 @@ public class DBManager {
         }
     }
 
-    public void close(){
+    public void close() {
         try {
             connection.close();
         } catch (SQLException e) {
-            logger.error("Could not close database connection: "+e.getMessage());
+            logger.error("Could not close database connection: " + e.getMessage());
         }
     }
 }

@@ -12,13 +12,14 @@ import net.kyori.adventure.text.format.*;
 
 import java.util.*;
 
-import static me.pintoadmin.velocityServerDialog.Text.mm;
+import static me.pintoadmin.velocityServerDialog.Text.*;
 
 public final class PasswordDialogFactory {
     private static final ResourceLocation PASSWD_SUBMIT = new ResourceLocation(SelectionManager.NAMESPACE, "passwd_submit");
     private static final ResourceLocation BACK = new ResourceLocation(SelectionManager.NAMESPACE, "back");
 
-    private PasswordDialogFactory() {}
+    private PasswordDialogFactory() {
+    }
 
     public static Dialog build(ConfigLoader cfg, String name) {
         List<ActionButton> buttons = new ArrayList<>();

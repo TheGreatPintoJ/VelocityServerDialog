@@ -5,12 +5,9 @@ import com.velocitypowered.api.event.connection.*;
 import com.velocitypowered.api.event.player.*;
 import com.velocitypowered.api.network.*;
 import com.velocitypowered.api.proxy.*;
-import com.velocitypowered.api.proxy.messages.*;
-import com.velocitypowered.api.proxy.server.*;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.*;
 
 import java.util.*;
-import java.util.concurrent.*;
 
 import static me.pintoadmin.velocityServerDialog.Text.*;
 
@@ -42,7 +39,7 @@ public final class JoinListener {
     }
 
     @Subscribe
-    public void onInitialServerFailure(KickedFromServerEvent event){
+    public void onInitialServerFailure(KickedFromServerEvent event) {
         if (!manager.playersPostjoin.get(event.getPlayer())) return;
 
         Optional<Component> reasonOpt = event.getServerKickReason();

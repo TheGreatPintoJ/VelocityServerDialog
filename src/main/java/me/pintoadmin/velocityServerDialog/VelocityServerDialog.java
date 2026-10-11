@@ -2,31 +2,29 @@ package me.pintoadmin.velocityServerDialog;
 
 import com.github.retrooper.packetevents.*;
 import com.github.retrooper.packetevents.event.*;
-import com.google.inject.Inject;
+import com.google.inject.*;
 import com.velocitypowered.api.command.*;
+import com.velocitypowered.api.event.*;
 import com.velocitypowered.api.event.proxy.*;
-import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.plugin.PluginContainer;
+import com.velocitypowered.api.plugin.*;
 import com.velocitypowered.api.plugin.annotation.*;
 import com.velocitypowered.api.proxy.*;
-import io.github.retrooper.packetevents.velocity.factory.VelocityPacketEventsBuilder;
-import net.kyori.adventure.text.*;
-import org.slf4j.Logger;
+import io.github.retrooper.packetevents.velocity.factory.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.nio.file.*;
-
-import static me.pintoadmin.velocityServerDialog.Text.mm;
 
 public class VelocityServerDialog {
     private final ProxyServer proxy;
     private final PluginContainer container;
     private final Logger logger;
-    @Inject @DataDirectory
+    @Inject
+    @DataDirectory
     private Path dataDir;
 
     @Inject
-    public VelocityServerDialog(ProxyServer proxy, PluginContainer container, Logger logger){
+    public VelocityServerDialog(ProxyServer proxy, PluginContainer container, Logger logger) {
         this.proxy = proxy;
         this.container = container;
         this.logger = logger;
@@ -60,7 +58,7 @@ public class VelocityServerDialog {
     }
 
     @Subscribe
-    public void onProxyShutdownEvent(ProxyShutdownEvent event){
+    public void onProxyShutdownEvent(ProxyShutdownEvent event) {
         PacketEvents.getAPI().terminate();
         dbManager.close();
     }

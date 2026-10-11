@@ -11,25 +11,25 @@ import com.velocitypowered.api.proxy.*;
 import com.velocitypowered.api.proxy.server.*;
 import com.velocitypowered.api.scheduler.*;
 import net.kyori.adventure.text.*;
-import net.kyori.adventure.text.event.ClickEvent;
 import org.slf4j.*;
 
-import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.*;
 
-import static me.pintoadmin.velocityServerDialog.Text.mm;
+import static me.pintoadmin.velocityServerDialog.Text.*;
 
 public final class SelectionManager {
     public static final String NAMESPACE = "velocityserverdialog";
     public final Map<Player, Boolean> playersPostjoin = new HashMap<>();
 
     private record Pending(PlayerChooseInitialServerEvent event, Continuation continuation,
-                           ScheduledTask timeoutTask, Set<String> onlineServers, Dialog dialog) {}
+                           ScheduledTask timeoutTask, Set<String> onlineServers, Dialog dialog) {
+    }
 
     /**
      * Resend a Pending object to its player - correct for player state (playing/config)
+     *
      * @param p the Pending to send
      */
     private void resend(Pending p) {
@@ -39,19 +39,21 @@ public final class SelectionManager {
 
     /**
      * Clear the dialog from the player - correct for player state (playing/config)
+     *
      * @param player the player to clear from
      */
-    public void clearDialog(Player player){
+    public void clearDialog(Player player) {
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerClearDialog() : new WrapperConfigServerClearDialog());
     }
 
     /**
      * Show a dialog to a player - correct for player state (playing/config)
+     *
      * @param player the player to send the dialog to
      * @param dialog the dialog to send to the player
      */
-    public void showDialog(Player player, Dialog dialog){
+    public void showDialog(Player player, Dialog dialog) {
         PacketEvents.getAPI().getPlayerManager()
                 .sendPacket(player, playersPostjoin.get(player) ? new WrapperPlayServerShowDialog(dialog) : new WrapperConfigServerShowDialog(dialog));
     }
@@ -65,8 +67,9 @@ public final class SelectionManager {
 
     /**
      * Class to handle dialog selections and dialog sending
+     *
      * @param plugin this plugin
-     * @param proxy the operating proxy
+     * @param proxy  the operating proxy
      * @param config the ConfigLoader instance to load from
      * @param logger the proxy's logger
      */
@@ -88,7 +91,7 @@ public final class SelectionManager {
                 .toList();
     }
 
-    public List<RegisteredServer> getGroupServers(String group){
+    public List<RegisteredServer> getGroupServers(String group) {
         if (config.servers().isEmpty()) return List.of();
         return config.servers().stream()
                 .filter(e -> e.group() != null && e.group().equalsIgnoreCase(group))
@@ -97,7 +100,7 @@ public final class SelectionManager {
                 .toList();
     }
 
-    public List<RegisteredServer> getNonGroupServers(){
+    public List<RegisteredServer> getNonGroupServers() {
         if (config.servers().isEmpty()) return List.of();
         return config.servers().stream()
                 .filter(e -> e.group() == null)
@@ -106,7 +109,7 @@ public final class SelectionManager {
                 .toList();
     }
 
-    public List<String> listedGroups(){
+    public List<String> listedGroups() {
         if (config.groups().isEmpty()) return List.of();
         return config.groups().stream()
                 .map(ConfigLoader.Group::id)
@@ -127,12 +130,16 @@ public final class SelectionManager {
 
     /**
      * Begin the server picker dialog
+     *
      * @param event the PlayerChooseInitialServerEvent to interact with
-     * @param cont the Continuation of the proxy's placement task
+     * @param cont  the Continuation of the proxy's placement task
      */
     public void begin(PlayerChooseInitialServerEvent event, Continuation cont) {
         Player player = event.getPlayer();
-        if (!player.isActive() && cont != null) { cont.resume(); return; }
+        if (!player.isActive() && cont != null) {
+            cont.resume();
+            return;
+        }
 
         // Feature 5: on timeout, close the dialog and fall back to Velocity's "try" list
         Scheduler.TaskBuilder taskBuilder = proxy.getScheduler().buildTask(plugin, () -> {
@@ -143,12 +150,13 @@ public final class SelectionManager {
                     .filter(s -> s.getServerInfo().getName().equalsIgnoreCase(config.defaultServer()))
                     .findFirst();
             defaultServer.ifPresent(event::setInitialServer); // Set destination to default-server if it exists
-            if(config.kickOnTimeout()) p.event.getPlayer().disconnect(mm("<red>You timed out! Select a server."));
-            if(cont != null) p.continuation().resume();                            // resume velocity server placement
+            if (config.kickOnTimeout()) p.event.getPlayer().disconnect(mm("<red>You timed out! Select a server."));
+            if (cont != null) p.continuation().resume();                            // resume velocity server placement
         }).delay(config.timeoutSeconds(), TimeUnit.SECONDS);
 
-        ScheduledTask task = proxy.getScheduler().buildTask(plugin, () -> {}).schedule(); // if postjoin, empty task instead (no dialog timeout)
-        if(!playersPostjoin.get(player)) task = taskBuilder.schedule(); // If not postjoin, schedule dialog timeout
+        ScheduledTask task = proxy.getScheduler().buildTask(plugin, () -> {
+        }).schedule(); // if postjoin, empty task instead (no dialog timeout)
+        if (!playersPostjoin.get(player)) task = taskBuilder.schedule(); // If not postjoin, schedule dialog timeout
 
         Map<String, Boolean> online = getOnlineServers();
         Set<String> up = online.entrySet().stream()
@@ -158,11 +166,11 @@ public final class SelectionManager {
 
 //        logger.warn(player.getUsername() + " is connecting using: " + player.getClientBrand());
         String brand = "";
-        if(player.getClientBrand() != null) brand = player.getClientBrand().split(":")[0];
+        if (player.getClientBrand() != null) brand = player.getClientBrand().split(":")[0];
 
-        for (ConfigLoader.Entry entry : config.servers()){
+        for (ConfigLoader.Entry entry : config.servers()) {
             String passwd = entry.pwString();
-            if(passwd.isBlank()) continue;
+            if (passwd.isBlank()) continue;
 
             String velocity = entry.velocity();
 
@@ -179,16 +187,18 @@ public final class SelectionManager {
 
     /**
      * Sends the main server picker dialog to a CommandSource
+     *
      * @param source the CommandSource to send the dialog to
      */
-    public void sendServersDialog(CommandSource source){
-        if(!(source instanceof Player p)) return;
+    public void sendServersDialog(CommandSource source) {
+        if (!(source instanceof Player p)) return;
         begin(new PlayerChooseInitialServerEvent(p, null), null);
     }
 
     /**
      * Signifies a selection click
-     * @param uuid the uuid of the player who clicked
+     *
+     * @param uuid       the uuid of the player who clicked
      * @param serverName the name of the server the player clicked on
      */
     public void select(UUID uuid, String serverName) {
@@ -211,9 +221,9 @@ public final class SelectionManager {
         clearDialog(player);
         showDialog(player, WaitingDialogFactory.build(serverName));
 
-        if(playersPostjoin.get(player)) player.createConnectionRequest(target.get()).connect().thenAccept((result) -> {
+        if (playersPostjoin.get(player)) player.createConnectionRequest(target.get()).connect().thenAccept((result) -> {
             clearDialog(player);
-            if(!result.isSuccessful()){
+            if (!result.isSuccessful()) {
                 showDialog(player,
                         NoticeDialogFactory.build(
                                 mm("<red>Could not connect to server: ")
@@ -223,18 +233,18 @@ public final class SelectionManager {
         });
         else p.event().setInitialServer(target.get());
 
-        if(p.continuation() != null) p.continuation().resume();
+        if (p.continuation() != null) p.continuation().resume();
     }
 
-    public void group(UUID uuid, String group){
+    public void group(UUID uuid, String group) {
         Optional<Player> player = proxy.getPlayer(uuid);
-        if(player.isEmpty()) return;
+        if (player.isEmpty()) return;
 
         List<RegisteredServer> groupServers = getGroupServers(group);
 
         String brand = "";
-        if(player.get().getClientBrand() != null) brand = player.get().getClientBrand().split(":")[0];
-        
+        if (player.get().getClientBrand() != null) brand = player.get().getClientBrand().split(":")[0];
+
         clearDialog(player.get());
         showDialog(player.get(),
                 ServerDialogFactory.build(this, config,
@@ -245,10 +255,11 @@ public final class SelectionManager {
 
     /**
      * Signifies a click on a password-protected server
-     * @param uuid the uuid of the player who clicked
+     *
+     * @param uuid       the uuid of the player who clicked
      * @param serverName the name of the server the player clicked on
      */
-    public void passwd(UUID uuid, String serverName){
+    public void passwd(UUID uuid, String serverName) {
         Pending p = pending.get(uuid);
         if (p == null) return;
 
@@ -260,19 +271,21 @@ public final class SelectionManager {
 
     /**
      * Sends a custom dialog to a player, called from the PacketEvents thread
-     * @param uuid the uuid of the player to send the dialog to
+     *
+     * @param uuid   the uuid of the player to send the dialog to
      * @param dialog the dialog to send to the player
      */
-    public void custom(UUID uuid, Dialog dialog){
+    public void custom(UUID uuid, Dialog dialog) {
         Optional<Player> player = proxy.getPlayer(uuid);
         player.ifPresent(value -> showDialog(value, dialog));
     }
 
     /**
      * Signifies a click on a 'back' button. Sends the player back to the main server picker dialog
+     *
      * @param uuid the uuid of the player who clicked
      */
-    public void back(UUID uuid){
+    public void back(UUID uuid) {
         Pending p = pending.get(uuid);
         if (p == null) return;
         clearDialog(p.event.getPlayer());
@@ -281,49 +294,53 @@ public final class SelectionManager {
 
     /**
      * Checks the inputted password against the configuration file's password
+     *
      * @param server the server in question
      * @param passwd the password inputted by a player
      * @return true if the password matches, false if not
      */
-    public boolean checkPasswd(String server, String passwd){
+    public boolean checkPasswd(String server, String passwd) {
         Optional<ConfigLoader.Entry> entry = config.servers().stream().filter(e -> e.velocity().equalsIgnoreCase(server)).findFirst();
         return entry.isPresent() && entry.get().pwString().equals(passwd);
     }
 
     /**
      * Signifies a player clicking the 'disconnect' button. Disconnects the player
+     *
      * @param uuid the player who clicked
      */
     public void quit(UUID uuid) {
         Pending p = pending.remove(uuid);
         Optional<Player> player = proxy.getPlayer(uuid);
-        if(player.isEmpty()) return;
+        if (player.isEmpty()) return;
         clearDialog(player.get());
-        if(p != null) p.timeoutTask().cancel();
+        if (p != null) p.timeoutTask().cancel();
         player.get().disconnect(mm(config.kickQuit()));
-        if(p != null && p.continuation() != null) p.continuation().resume();
+        if (p != null && p.continuation() != null) p.continuation().resume();
     }
 
     /**
      * Signifiesd a player clicking the 'close' button. Closes the currently open dialog
+     *
      * @param uuid the player who clicked
      */
-    public void close(UUID uuid){
+    public void close(UUID uuid) {
         Pending p = pending.remove(uuid);
         if (p == null) return;
         clearDialog(p.event.getPlayer());
         p.timeoutTask.cancel();
-        if(p.continuation() != null) p.continuation().resume();
+        if (p.continuation() != null) p.continuation().resume();
     }
 
     /**
      * Called if the player disconnected independently. Cleanup tasks
+     *
      * @param uuid the player who disconnected
      */
     public void abandon(UUID uuid) {
         Pending p = pending.remove(uuid);
         if (p == null) return;
         p.timeoutTask().cancel();
-        if(p.continuation() != null) p.continuation().resume();
+        if (p.continuation() != null) p.continuation().resume();
     }
 }

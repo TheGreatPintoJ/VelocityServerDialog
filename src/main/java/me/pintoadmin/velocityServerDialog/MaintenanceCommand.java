@@ -1,6 +1,5 @@
 package me.pintoadmin.velocityServerDialog;
 
-import com.sun.tools.javac.*;
 import com.velocitypowered.api.command.*;
 import org.slf4j.*;
 
@@ -9,7 +8,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static me.pintoadmin.velocityServerDialog.Text.mm;
+import static me.pintoadmin.velocityServerDialog.Text.*;
 
 public class MaintenanceCommand implements SimpleCommand {
     private final ConfigLoader configLoader;
@@ -29,12 +28,13 @@ public class MaintenanceCommand implements SimpleCommand {
         CommandSource source = invocation.source();
 
         String[] args = invocation.arguments();
-        if(args.length == 0) {
-            if(!source.hasPermission("velocityserverdialog.serversdialog")) return;
+        if (args.length == 0) {
+            if (!source.hasPermission("velocityserverdialog.serversdialog")) return;
             manager.sendServersDialog(invocation.source());
         } else {
-            if(!source.hasPermission("velocityserverdialog.serversdialog.maintenance")) return;
-            if (args.length < 2) source.sendMessage(mm("<red>Usage: /serversdialog <server> <maintenance: true|false>"));
+            if (!source.hasPermission("velocityserverdialog.serversdialog.maintenance")) return;
+            if (args.length < 2)
+                source.sendMessage(mm("<red>Usage: /serversdialog <server> <maintenance: true|false>"));
             else {
                 String server = args[0];
                 boolean enabled = Boolean.parseBoolean(args[1]);
@@ -54,7 +54,7 @@ public class MaintenanceCommand implements SimpleCommand {
     public CompletableFuture<List<String>> suggestAsync(Invocation invocation) {
         String[] args = invocation.arguments();
 
-        if(!invocation.source().hasPermission("velocityserverdialog.serversdialog.maintenance"))
+        if (!invocation.source().hasPermission("velocityserverdialog.serversdialog.maintenance"))
             return CompletableFuture.completedFuture(List.of());
 
         if (args.length <= 1) {

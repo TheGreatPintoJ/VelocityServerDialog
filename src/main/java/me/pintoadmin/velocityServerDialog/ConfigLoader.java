@@ -3,25 +3,27 @@ package me.pintoadmin.velocityServerDialog;
 import com.moandjiezana.toml.*;
 
 import java.io.*;
-import java.nio.channels.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
 
 public record ConfigLoader(
         int timeoutSeconds, boolean kickOnTimeout, boolean kickLegacyClients, int columns,
-       String defaultServer, String maintenancePerm, boolean savePasswords, String title, String body,
-       String kickQuit, List<Group> groups, List<Entry> servers){
+        String defaultServer, String maintenancePerm, boolean savePasswords, String title, String body,
+        String kickQuit, List<Group> groups, List<Entry> servers) {
     private static Path dataDir = Path.of("");
 
-    public record Entry(String velocity, String group, String display, String description, String type, String permString, String showPermString, String pwString, boolean maintenance) {}
+    public record Entry(String velocity, String group, String display, String description, String type,
+                        String permString, String showPermString, String pwString, boolean maintenance) {
+    }
 
     public Entry entry(String velocityName) {
         return servers.stream().filter(e -> e.velocity().equalsIgnoreCase(velocityName)).findFirst()
                 .orElse(new Entry(velocityName, "", velocityName, "", "vanilla", "", "", "", false));
     }
 
-    public record Group(String id, String name, String hover) {}
+    public record Group(String id, String name, String hover) {
+    }
 
     public Group group(String id) {
         return groups.stream().filter(g -> g.id.equalsIgnoreCase(id)).findFirst()
@@ -32,14 +34,14 @@ public record ConfigLoader(
         ConfigLoader.dataDir = dataDir;
         Files.createDirectories(dataDir);
         Path file = dataDir.resolve("config.toml");
-        if (Files.notExists(file)){
+        if (Files.notExists(file)) {
             try (InputStream in = ConfigLoader.class.getResourceAsStream("/config.toml")) {
                 Files.copy(Objects.requireNonNull(in), file);
             }
         }
         Toml toml = new Toml().read(file.toFile());
         List<Entry> servers = new ArrayList<>();
-        for (Toml t : toml.getTables("server")){
+        for (Toml t : toml.getTables("server")) {
             String velocityName = t.getString("velocity");
             String group = t.getString("group");
             String display = t.getString("display");
@@ -53,7 +55,7 @@ public record ConfigLoader(
             servers.add(new Entry(velocityName, group, display, description, type, perm, showPerm, pass, maintenance));
         }
         List<Group> groups = new ArrayList<>();
-        for (Toml t : toml.getTables("group")){
+        for (Toml t : toml.getTables("group")) {
             String id = t.getString("id", "");
             String name = t.getString("name", id);
             String hover = t.getString("hover", "");

@@ -1,7 +1,6 @@
 package me.pintoadmin.velocityServerDialog;
 
 import com.github.retrooper.packetevents.protocol.dialog.*;
-import com.github.retrooper.packetevents.protocol.dialog.Dialog;
 import com.github.retrooper.packetevents.protocol.dialog.action.*;
 import com.github.retrooper.packetevents.protocol.dialog.body.*;
 import com.github.retrooper.packetevents.protocol.dialog.button.*;
@@ -9,12 +8,11 @@ import com.github.retrooper.packetevents.protocol.nbt.*;
 import com.github.retrooper.packetevents.resources.*;
 import com.velocitypowered.api.proxy.*;
 import com.velocitypowered.api.proxy.server.*;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.format.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.List;
 
 import static me.pintoadmin.velocityServerDialog.Text.*;
 
@@ -24,18 +22,20 @@ public final class ServerDialogFactory {
     private static final ResourceLocation PASSWD = new ResourceLocation(SelectionManager.NAMESPACE, "passwd");
     private static final ResourceLocation LOCKED = new ResourceLocation(SelectionManager.NAMESPACE, "locked");
     private static final ResourceLocation MAINTENANCE = new ResourceLocation(SelectionManager.NAMESPACE, "maintenance");
-    private static final ResourceLocation QUIT   = new ResourceLocation(SelectionManager.NAMESPACE, "quit");
-    private static final ResourceLocation CLOSE   = new ResourceLocation(SelectionManager.NAMESPACE, "close");
+    private static final ResourceLocation QUIT = new ResourceLocation(SelectionManager.NAMESPACE, "quit");
+    private static final ResourceLocation CLOSE = new ResourceLocation(SelectionManager.NAMESPACE, "close");
 
-    private ServerDialogFactory() {}
+    private ServerDialogFactory() {
+    }
 
     /**
      * Builds an instance of the main server picker dialog
-     * @param manager the SelectionManager instance to handle selections
-     * @param cfg the ConfigLoader instance to load info from
-     * @param servers the servers registered in config file
-     * @param online the map of server to online state
-     * @param player the player to create the dialog for
+     *
+     * @param manager    the SelectionManager instance to handle selections
+     * @param cfg        the ConfigLoader instance to load info from
+     * @param servers    the servers registered in config file
+     * @param online     the map of server to online state
+     * @param player     the player to create the dialog for
      * @param clientType the client brand of the player in question
      * @return the built MultiActionDialog
      */
@@ -79,11 +79,11 @@ public final class ServerDialogFactory {
 
             boolean serverMaintenance = entry.maintenance();
 
-            if(!serverPerm.isBlank() && !player.hasPermission(serverPerm))
+            if (!serverPerm.isBlank() && !player.hasPermission(serverPerm))
                 serverLocked = true;
 
-            if(!Objects.equals(entry.type(), "vanilla")) { // non-vanilla server
-                if(clientType.contains("vanilla")){ // vanilla client
+            if (!Objects.equals(entry.type(), "vanilla")) { // non-vanilla server
+                if (clientType.contains("vanilla")) { // vanilla client
                     serverLocked = true; // prevent joining
                 }
             }
@@ -93,7 +93,7 @@ public final class ServerDialogFactory {
                 label = mm(entry.display()).color(TextColor.color(255, 50, 50))
                         .append(Component.text(" (locked)", NamedTextColor.DARK_RED))
                         .decorate(TextDecoration.BOLD);
-            } else if(serverMaintenance) {
+            } else if (serverMaintenance) {
                 label = mm(entry.display()).color(TextColor.color(175, 0, 255))
                         .append(Component.text(" (maintenance)", NamedTextColor.DARK_PURPLE))
                         .decorate(TextDecoration.BOLD);
@@ -117,7 +117,7 @@ public final class ServerDialogFactory {
             Action finalAction = serverMaintenance && !player.hasPermission(cfg.maintenancePerm()) ? maintenance : serverLocked ? locked : !serverPasswd.isBlank() ? passwd : action;
             ActionButton button = new ActionButton(data, finalAction);
             String showPerm = entry.showPermString();
-            if(showPerm.isEmpty() || player.hasPermission(showPerm))
+            if (showPerm.isEmpty() || player.hasPermission(showPerm))
                 buttons.add(button);
         }
 
